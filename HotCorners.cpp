@@ -14,16 +14,16 @@
 #pragma endregion 
 
 #pragma region Parameters
-int HotCornerWindowType = 2; // 0=Button, 1=CharmsBar, 2=CharmsButton
-int HotCornerType = 3; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight
+int HotCornerWindowType = 1; // 0=Button, 1=CharmsBar, 2=CharmsButton
+int HotCornerType = 3; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight (CharmsButton and CharmsBar: 3)
 int blCmdOrShellExecute = 1; // 0=ShellExecute, 1=cmd
 int brCmdOrShellExecute = 0; // 0=ShellExecute, 1=cmd
-char lclick[MAX_BUF_LEN] = "start \"\" cmd /c \"dir %SystemDrive% && pause\"";//"::0";//"";// CharmsBar: ""
-char rclick[MAX_BUF_LEN] = "winver";//"";//"::1";// CharmsBar: ""
+char lclick[MAX_BUF_LEN] = "";//"::0";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmsBar: ""
+char rclick[MAX_BUF_LEN] = "";//"::1";//"::0";//"winver";// CharmsBar: ""
 char help[MAX_BUF_LEN] = "";//"Left-click to simulate WIN button, right-click to simulate WIN+D";// CharmsBar: ""
-char image[MAX_BUF_LEN] = "Show_desktop.bmp";//"Start.bmp";//"";// CharmsBar: ""
+char image[MAX_BUF_LEN] = "";//"Start.bmp";//"Show_desktop.bmp";// CharmsBar: ""
 int offset_image_x = 0;
-int offset_image_y = -414;//0;//CharmButton: -300/-414, Button and CharmsBar: 0
+int offset_image_y = 0;//CharmsButton: -300/-414, Button and CharmsBar: 0
 int ptx_err = 5;
 int pty_err = 5;
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
@@ -126,6 +126,58 @@ void ClickAction(char* cmd, int bCmdOrShellExecute)
 	}
 }
 
+void GetCommandOutput(LPTSTR text)
+{
+	std::string cmd = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm dddd MMM dd'\" > temp.txt";
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// Start the child process with no window
+	if (!CreateProcess(NULL,   // No module name (use command line)
+		(LPSTR)cmd.c_str(),    // Command line
+		NULL,                  // Process handle not inheritable
+		NULL,                  // Thread handle not inheritable
+		FALSE,                 // Set handle inheritance to FALSE
+		CREATE_NO_WINDOW,      // No console window
+		NULL,                  // Use parent's environment block
+		NULL,                  // Use parent's starting directory 
+		&si,                   // Pointer to STARTUPINFO structure
+		&pi)                   // Pointer to PROCESS_INFORMATION structure
+		) {
+		return;
+	}
+
+	// Wait until child process exits
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Close process and thread handles
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	// Read the output from the temp file
+	std::wifstream file("temp.txt");
+	file.imbue(std::locale(file.getloc(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
+
+	std::wstring result;
+	std::wstring line;
+
+	while (std::getline(file, line)) {
+		result += line;
+		result.push_back('\n');
+	}
+
+	// Convert std::wstring to std::string
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	std::string narrow_string = converter.to_bytes(result);
+
+	// Convert std::string to char*
+	strcpy_s(text, MAX_BUF_LEN, narrow_string.c_str());
+}
+
 BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
 {
     char class_name[80];
@@ -175,7 +227,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
+#pragma region Text
+			//// Set the background color for the text
+			//SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
+			//SetTextColor(hdc, RGB(0, 255, 0));
 
+			//char text[MAX_BUF_LEN];
+			//// Get the command output
+			//GetCommandOutput((char*)text);
+			//TextOut(hdc, 5, 50, text, _tcslen(text));
+#pragma endregion
 			// Cleanup
 			SelectObject(hMemDC, hOldBitmap);
 			DeleteDC(hMemDC);
@@ -199,10 +260,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 		ClickAction(lclick, blCmdOrShellExecute);
 		if (HotCornerWindowType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HotCornerWindowType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		break;
 	case WM_RBUTTONDOWN:
 		ClickAction(rclick, brCmdOrShellExecute);
 		if (HotCornerWindowType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HotCornerWindowType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		break;
 	case WM_MOUSEMOVE:
 	{
