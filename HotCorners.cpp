@@ -16,14 +16,14 @@
 #pragma region Parameters
 int HotCornerWindowType = 0; // 0=Button, 1=CharmsBar, 2=CharmsButton
 int HotCornerType = 0; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight (CharmsButton and CharmsBar: 3)
-int blCmdOrShellExecute = 1; // 0=ShellExecute, 1=cmd
-int brCmdOrShellExecute = 0; // 0=ShellExecute, 1=cmd
-char lclick[MAX_BUF_LEN] = "::0";//"";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmsBar: ""
-char rclick[MAX_BUF_LEN] = "::1";//"";//"::0";//"winver";// CharmsBar: ""
+int blCmdOrShellExecute = 0; // How to execute the action for a left-click. 0=ShellExecute, 1=cmd
+int brCmdOrShellExecute = 1; // How to execute the action for a right-click. 0=ShellExecute, 1=cmd
+char lclick[MAX_BUF_LEN] = "::0";//"";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// Action for a left-click. CharmsBar: ""
+char rclick[MAX_BUF_LEN] = "::1";//"";//"::0";//"winver";// Action for a left-click. CharmsBar: ""
 char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";//"";// CharmsBar: ""
 char image[MAX_BUF_LEN] = "Start.bmp";//"";//"Show_desktop.bmp";// Image to display. CharmsBar: ""
-int offset_image_x = 0; // Position to display the button or bar
-int offset_image_y = 0; // Position to display the button or bar. CharmsButton: -300/-414, Button and CharmsBar: 0
+int offset_x = 0; // Position to display the button or bar
+int offset_y = 0; // Position to display the button or bar. CharmsButton: -300/-414, Button and CharmsBar: 0
 int ptx_err = 5; // Tolerance for the mouse position to be considered in the corner
 int pty_err = 5; // Tolerance for the mouse position to be considered in the corner
 int CharmsBarType = 0; // 0=Vertical, 1=Horizontal
@@ -180,6 +180,7 @@ void GetCommandOutput(LPTSTR text)
 
 BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER(lParam);
     char class_name[80];
     GetClassName(hwnd, class_name, sizeof(class_name));
 
@@ -195,6 +196,7 @@ BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
 
 BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER(lParam);
     char class_name[80];
     GetClassName(hwnd, class_name, sizeof(class_name));
 
@@ -304,7 +306,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case IDT_TIMER1:
 			// Screen dimensions may have changed
 			UpdateWindowPosition();
-			MoveWindow(hwnd, x+offset_image_x, y+offset_image_y, wx, wy, TRUE);
+			MoveWindow(hwnd, x+offset_x, y+offset_y, wx, wy, TRUE);
 
 			// Get the current mouse position
 			POINT pt;
@@ -334,9 +336,65 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+void ParseParameters()
+{
+    for (int i = 1; i < __argc; i++)
+    {
+        std::string arg = __argv[i];
+        if (arg.find("--HotCornerWindowType=") == 0)
+            HotCornerWindowType = std::stoi(arg.substr(22));
+        else if (arg.find("--HotCornerType=") == 0)
+            HotCornerType = std::stoi(arg.substr(16));
+        else if (arg.find("--blCmdOrShellExecute=") == 0)
+            blCmdOrShellExecute = std::stoi(arg.substr(22));
+        else if (arg.find("--brCmdOrShellExecute=") == 0)
+            brCmdOrShellExecute = std::stoi(arg.substr(22));
+        else if (arg.find("--lclick=") == 0)
+            strncpy_s(lclick, arg.substr(9).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--rclick=") == 0)
+            strncpy_s(rclick, arg.substr(9).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--help=") == 0)
+            strncpy_s(help, arg.substr(7).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--image=") == 0)
+            strncpy_s(image, arg.substr(8).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--offset_x=") == 0)
+            offset_x = std::stoi(arg.substr(11));
+        else if (arg.find("--offset_y=") == 0)
+            offset_y = std::stoi(arg.substr(11));
+        else if (arg.find("--ptx_err=") == 0)
+            ptx_err = std::stoi(arg.substr(10));
+        else if (arg.find("--pty_err=") == 0)
+            pty_err = std::stoi(arg.substr(10));
+        else if (arg.find("--CharmsBarType=") == 0)
+            CharmsBarType = std::stoi(arg.substr(16));
+        else if (arg.find("--CharmsBarWidth=") == 0)
+            CharmsBarWidth = std::stoi(arg.substr(17));
+        else if (arg.find("--CharmsBarHeight=") == 0)
+            CharmsBarHeight = std::stoi(arg.substr(18));
+        else if (arg.find("--CharmsBarRed=") == 0)
+            CharmsBarRed = std::stoi(arg.substr(15));
+        else if (arg.find("--CharmsBarGreen=") == 0)
+            CharmsBarGreen = std::stoi(arg.substr(17));
+        else if (arg.find("--CharmsBarBlue=") == 0)
+            CharmsBarBlue = std::stoi(arg.substr(16));
+        else if (arg.find("--windowStyle=") == 0)
+            windowStyle = std::stoi(arg.substr(14));
+        else if (arg.find("--timerPeriod=") == 0)
+            timerPeriod = std::stoi(arg.substr(14));
+    }
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 #pragma region Parameter validation
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(nCmdShow);
+	ParseParameters();
+	if (HotCornerWindowType < 0 || HotCornerWindowType > 2)
+	{
+		return EXIT_INVALID_PARAMETER;
+	}
 	if (HotCornerType < 0 || HotCornerType > 3)
 	{
 		return EXIT_INVALID_PARAMETER;
@@ -381,7 +439,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	UpdateWindowPosition();
 
 	HWND hwnd = CreateWindowEx(windowStyle, CLASS_NAME, "Hot Corners", WS_POPUP,
-		x+offset_image_x, y+offset_image_y, wx, wy, NULL, NULL, hInstance, NULL);
+		x+offset_x, y+offset_y, wx, wy, NULL, NULL, hInstance, NULL);
 	if (hwnd == NULL)
 	{
 		return EXIT_INVALID_PARAMETER;

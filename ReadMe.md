@@ -14,8 +14,31 @@ Touch screens are not yet supported.
 ## Installation
 
 Download: see https://github.com/lebarsfa/HotCorners/releases.
-Extract and copy the folder to e.g. `C:\Program Files\`.
-Create shortcuts to all executables and place them in `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
+Extract and copy the folder to `C:\Program Files\`.
+Move the provided shortcuts to `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
+
+## Customization
+
+In the shortcut properties, you can add parameters to customize the buttons and bars. You can create more shortcuts with different parameters to have different buttons.
+Illustrative example of some possible command-line parameters:
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=1 --HotCornerType=3 --lclick= --rclick= --help= --image=
+
+would create a Charms bar background.
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=2 --HotCornerType=3 --lclick="::0" --rclick= --help= --image=Start.bmp --offset_y=-300
+
+would create a Charms button on the Charms bar to generate WIN key press ("::0" is a hardcoded predefined action).
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=2 --HotCornerType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --offset_y=-414
+
+would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=2 --HotCornerType=3 --blCmdOrShellExecute=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrShellExecute=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --offset_y=-528
+
+would create a Charms button on the Charms bar with some custom actions.
+
+See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp for more information about the possible parameters.
 
 ## Rationale
 
@@ -25,8 +48,6 @@ The idea is that the default location of the `Show desktop` button on Windows 10
 This is a multi-line comment.
 You can write as many lines as you want in this comment.
 Just make sure you keep everything within the parentheses.
-Another alternative is to display a `Charms bar` with customizable buttons, which can be used to run different commands or shortcuts.
-In the shortcut properties, you can add parameters to customize the buttons. You can create more shortcuts with different parameters to have different buttons.
 )
 
 ## Developer information
