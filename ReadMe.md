@@ -19,7 +19,7 @@ Move the provided shortcuts to `C:\Users\YOUR USER NAME\AppData\Roaming\Microsof
 
 ## Customization
 
-In the shortcut properties, you can add parameters to customize the buttons and bars. You can create more shortcuts with different parameters to have different buttons.
+In the shortcut `Target` property, you can add parameters to customize the buttons and bars. You can create more shortcuts with different parameters to have different buttons.
 Illustrative example of some possible command-line parameters:
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=1 --HotCornerType=3 --lclick= --rclick= --help= --image=
@@ -36,7 +36,7 @@ would create a Charms button on the Charms bar to generate WIN+D key press ("::1
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HotCornerWindowType=2 --HotCornerType=3 --blCmdOrShellExecute=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrShellExecute=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --offset_y=-528
 
-would create a Charms button on the Charms bar with some custom actions.
+would create a Charms button on the Charms bar with some custom actions. Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HOTCORNERNOTEPADBUTTON` with `--HotCornerWindowType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HOTCORNERNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
 See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp for more information about the possible parameters.
 
