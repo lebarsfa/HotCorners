@@ -14,26 +14,26 @@
 #pragma endregion 
 
 #pragma region Parameters
-int HotCornerWindowType = 1; // 0=Button, 1=CharmsBar, 2=CharmsButton
-int HotCornerType = 3; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight (CharmsButton and CharmsBar: 3)
+int HotCornerWindowType = 0; // 0=Button, 1=CharmsBar, 2=CharmsButton
+int HotCornerType = 0; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight (CharmsButton and CharmsBar: 3)
 int blCmdOrShellExecute = 1; // 0=ShellExecute, 1=cmd
 int brCmdOrShellExecute = 0; // 0=ShellExecute, 1=cmd
-char lclick[MAX_BUF_LEN] = "";//"::0";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmsBar: ""
-char rclick[MAX_BUF_LEN] = "";//"::1";//"::0";//"winver";// CharmsBar: ""
-char help[MAX_BUF_LEN] = "";//"Left-click to simulate WIN button, right-click to simulate WIN+D";// CharmsBar: ""
-char image[MAX_BUF_LEN] = "";//"Start.bmp";//"Show_desktop.bmp";// CharmsBar: ""
-int offset_image_x = 0;
-int offset_image_y = 0;//CharmsButton: -300/-414, Button and CharmsBar: 0
-int ptx_err = 5;
-int pty_err = 5;
+char lclick[MAX_BUF_LEN] = "::0";//"";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmsBar: ""
+char rclick[MAX_BUF_LEN] = "::1";//"";//"::0";//"winver";// CharmsBar: ""
+char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";//"";// CharmsBar: ""
+char image[MAX_BUF_LEN] = "Start.bmp";//"";//"Show_desktop.bmp";// Image to display. CharmsBar: ""
+int offset_image_x = 0; // Position to display the button or bar
+int offset_image_y = 0; // Position to display the button or bar. CharmsButton: -300/-414, Button and CharmsBar: 0
+int ptx_err = 5; // Tolerance for the mouse position to be considered in the corner
+int pty_err = 5; // Tolerance for the mouse position to be considered in the corner
+int CharmsBarType = 0; // 0=Vertical, 1=Horizontal
+int CharmsBarWidth = 114; // 85 in Windows 8.1
+int CharmsBarHeight = 90;
+int CharmsBarRed = 19; // In 0-255 range
+int CharmsBarGreen = 14; // In 0-255 range
+int CharmsBarBlue = 18; // In 0-255 range
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
-int CharmsType = 0; // 0=Vertical, 1=Horizontal
-int CharmsWidth = 114; // 85 in Windows 8.1
-int CharmsHeight = 90;
-int CharmsRed = 19;
-int CharmsGreen = 14;
-int CharmsBlue = 18;
-int timerPeriod = 100;
+int timerPeriod = 100; // In milliseconds
 #pragma endregion
 
 #pragma region Global variables
@@ -58,14 +58,14 @@ void UpdateWindowPosition()
 	}
 	else
 	{
-		if (CharmsType == 1)
+		if (CharmsBarType == 1)
 		{
 			wx = screenWidth;
-			wy = CharmsHeight;
+			wy = CharmsBarHeight;
 		}
 		else
 		{
-			wx = CharmsWidth;
+			wx = CharmsBarWidth;
 			wy = screenHeight;
 		}
 	}
@@ -243,7 +243,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		else {
 			// Set your desired color
-			HBRUSH hBrush = CreateSolidBrush(RGB(CharmsRed, CharmsGreen, CharmsBlue));
+			HBRUSH hBrush = CreateSolidBrush(RGB(CharmsBarRed, CharmsBarGreen, CharmsBarBlue));
 
 			// Fill the client area with color
 			RECT rect;
@@ -288,7 +288,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Get the current mouse position
 			POINT pt;
 			GetCursorPos(&pt);
-			if ((CharmsType == 0 && pt.x >= wx && pt.x <= x)||(CharmsType == 1 && pt.y >= wy && pt.y <= y))
+			if ((CharmsBarType == 0 && pt.x >= wx && pt.x <= x)||(CharmsBarType == 1 && pt.y >= wy && pt.y <= y))
 			{
 				EnumWindows(EnumWindowsHideProc, 0);
 			}

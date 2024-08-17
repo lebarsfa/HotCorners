@@ -31,4 +31,4 @@ In the shortcut properties, you can add parameters to customize the buttons. You
 
 ## Developer information
 
-Built with Visual Studio 2022 with "Desktop development with C++" workload.
+Built with Visual Studio 2022 with "Desktop development with C++" workload. It is a C++ "Windows Desktop Application" project.
