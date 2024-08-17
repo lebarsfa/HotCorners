@@ -46,6 +46,10 @@ int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWIND
 int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
 #pragma endregion
+char dispcmdl1c1[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm'\" > temp.txt";//"";// Command to output
+char dispcmdl2c1[MAX_BUF_LEN] = "";
+char dispcmdl1c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'dddd'\" > temp.txt";
+char dispcmdl2c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'MMM dd'\" > temp.txt";
 
 #pragma region Global variables
 int screenWidth = 0, screenHeight = 0, x = 0, y = 0, wx = 0, wy = 0;
@@ -215,9 +219,8 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	}
 }
 
-void GetCommandOutput(LPTSTR text)
+void GetCommandOutput(char* cmd, LPTSTR text)
 {
-	std::string cmd = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm dddd MMM dd'\" > temp.txt";
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
@@ -227,7 +230,7 @@ void GetCommandOutput(LPTSTR text)
 
 	// Start the child process with no window
 	if (!CreateProcess(NULL,   // No module name (use command line)
-		(LPSTR)cmd.c_str(),    // Command line
+		(LPSTR)cmd,    // Command line
 		NULL,                  // Process handle not inheritable
 		NULL,                  // Thread handle not inheritable
 		FALSE,                 // Set handle inheritance to FALSE
@@ -319,14 +322,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
 #pragma region Text
-			//// Set the background color for the text
-			//SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
-			//SetTextColor(hdc, RGB(0, 255, 0));
+			if (dispcmdl1c1[0] != '\0') 
+			{
+				// Set the background color for the text
+				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
+				SetTextColor(hdc, RGB(0, 255, 0));
 
-			//char text[MAX_BUF_LEN];
-			//// Get the command output
-			//GetCommandOutput((char*)text);
-			//TextOut(hdc, 5, 50, text, _tcslen(text));
+				char text[MAX_BUF_LEN];
+				// Get the command output
+				GetCommandOutput(dispcmdl1c1, (char*)text);
+				TextOut(hdc, 0, 0, text, _tcslen(text));
+			}
+			if (dispcmdl1c2[0] != '\0') 
+			{
+				// Set the background color for the text
+				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
+				SetTextColor(hdc, RGB(0, 255, 0));
+
+				char text[MAX_BUF_LEN];
+				// Get the command output
+				GetCommandOutput(dispcmdl1c2, (char*)text);
+				TextOut(hdc, bitmap.bmWidth/2, 0, text, _tcslen(text));
+			}
+			if (dispcmdl2c1[0] != '\0') 
+			{
+				// Set the background color for the text
+				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
+				SetTextColor(hdc, RGB(0, 255, 0));
+
+				char text[MAX_BUF_LEN];
+				// Get the command output
+				GetCommandOutput(dispcmdl2c2, (char*)text);
+				TextOut(hdc, 0, bitmap.bmHeight/2, text, _tcslen(text));
+			}
+			if (dispcmdl2c2[0] != '\0') 
+			{
+				// Set the background color for the text
+				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
+				SetTextColor(hdc, RGB(0, 255, 0));
+
+				char text[MAX_BUF_LEN];
+				// Get the command output
+				GetCommandOutput(dispcmdl2c2, (char*)text);
+				TextOut(hdc, bitmap.bmWidth/2, bitmap.bmHeight/2, text, _tcslen(text));
+			}
 #pragma endregion
 			// Cleanup
 			SelectObject(hMemDC, hOldBitmap);
