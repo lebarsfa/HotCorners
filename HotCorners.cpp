@@ -342,45 +342,45 @@ void ParseParameters()
     {
         std::string arg = __argv[i];
         if (arg.find("--HotCornerWindowType=") == 0)
-            HotCornerWindowType = std::stoi(arg.substr(22));
+            HotCornerWindowType = std::stoi(arg.substr(3+strlen("HotCornerWindowType")));
         else if (arg.find("--HotCornerType=") == 0)
-            HotCornerType = std::stoi(arg.substr(16));
+            HotCornerType = std::stoi(arg.substr(3+strlen("HotCornerType")));
         else if (arg.find("--blCmdOrShellExecute=") == 0)
-            blCmdOrShellExecute = std::stoi(arg.substr(22));
+            blCmdOrShellExecute = std::stoi(arg.substr(3+strlen("blCmdOrShellExecute")));
         else if (arg.find("--brCmdOrShellExecute=") == 0)
-            brCmdOrShellExecute = std::stoi(arg.substr(22));
+            brCmdOrShellExecute = std::stoi(arg.substr(3+strlen("brCmdOrShellExecute")));
         else if (arg.find("--lclick=") == 0)
-            strncpy_s(lclick, arg.substr(9).c_str(), MAX_BUF_LEN);
+            strncpy_s(lclick, arg.substr(3+strlen("lclick")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--rclick=") == 0)
-            strncpy_s(rclick, arg.substr(9).c_str(), MAX_BUF_LEN);
+            strncpy_s(rclick, arg.substr(3+strlen("rclick")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--help=") == 0)
-            strncpy_s(help, arg.substr(7).c_str(), MAX_BUF_LEN);
+            strncpy_s(help, arg.substr(3+strlen("help")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--image=") == 0)
-            strncpy_s(image, arg.substr(8).c_str(), MAX_BUF_LEN);
+            strncpy_s(image, arg.substr(3+strlen("image")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--offset_x=") == 0)
-            offset_x = std::stoi(arg.substr(11));
+            offset_x = std::stoi(arg.substr(3+strlen("offset_x")));
         else if (arg.find("--offset_y=") == 0)
-            offset_y = std::stoi(arg.substr(11));
+            offset_y = std::stoi(arg.substr(3+strlen("offset_y")));
         else if (arg.find("--ptx_err=") == 0)
-            ptx_err = std::stoi(arg.substr(10));
+            ptx_err = std::stoi(arg.substr(3+strlen("ptx_err")));
         else if (arg.find("--pty_err=") == 0)
-            pty_err = std::stoi(arg.substr(10));
+            pty_err = std::stoi(arg.substr(3+strlen("pty_err")));
         else if (arg.find("--CharmsBarType=") == 0)
-            CharmsBarType = std::stoi(arg.substr(16));
+            CharmsBarType = std::stoi(arg.substr(3+strlen("CharmsBarType")));
         else if (arg.find("--CharmsBarWidth=") == 0)
-            CharmsBarWidth = std::stoi(arg.substr(17));
+            CharmsBarWidth = std::stoi(arg.substr(3+strlen("CharmsBarWidth")));
         else if (arg.find("--CharmsBarHeight=") == 0)
-            CharmsBarHeight = std::stoi(arg.substr(18));
+            CharmsBarHeight = std::stoi(arg.substr(3+strlen("CharmsBarHeight")));
         else if (arg.find("--CharmsBarRed=") == 0)
-            CharmsBarRed = std::stoi(arg.substr(15));
+            CharmsBarRed = std::stoi(arg.substr(3+strlen("CharmsBarRed")));
         else if (arg.find("--CharmsBarGreen=") == 0)
-            CharmsBarGreen = std::stoi(arg.substr(17));
+            CharmsBarGreen = std::stoi(arg.substr(3+strlen("CharmsBarGreen")));
         else if (arg.find("--CharmsBarBlue=") == 0)
-            CharmsBarBlue = std::stoi(arg.substr(16));
+            CharmsBarBlue = std::stoi(arg.substr(3+strlen("CharmsBarBlue")));
         else if (arg.find("--windowStyle=") == 0)
-            windowStyle = std::stoi(arg.substr(14));
+            windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--timerPeriod=") == 0)
-            timerPeriod = std::stoi(arg.substr(14));
+            timerPeriod = std::stoi(arg.substr(3+strlen("timerPeriod")));
     }
 }
 
