@@ -107,57 +107,95 @@ void ClickAction(char* cmd, int bCmdOrSE)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
-		// Simulate WIN key press
-		
+		// Simulate WIN key press		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
-
-		//// Create a generic keyboard event structure
-		//INPUT ip;
-		//ip.type = INPUT_KEYBOARD;
-		//ip.ki.wScan = 0; // hardware scan code for key
-		//ip.ki.time = 0;
-		//ip.ki.dwExtraInfo = 0;
-
-		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
-		//ip.ki.dwFlags = 0; // 0 for key press
-		//SendInput(1, &ip, sizeof(INPUT));
-		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
-		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
-		//SendInput(1, &ip, sizeof(INPUT));
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
-		// Simulate WIN + D key press to show desktop
-		
+		// Simulate WIN + D key press to show desktop		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		keybd_event('D', 0, 0, 0); // Press the D key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
-
-		//// Create a generic keyboard event structure
-		//INPUT ip;
-		//ip.type = INPUT_KEYBOARD;
-		//ip.ki.wScan = 0; // hardware scan code for key
-		//ip.ki.time = 0;
-		//ip.ki.dwExtraInfo = 0;
-
-		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
-		//ip.ki.dwFlags = 0; // 0 for key press
-		//SendInput(1, &ip, sizeof(INPUT));
-		//ip.ki.wVk = 'D'; // virtual-key code for the D key
-		//ip.ki.dwFlags = 0; // 0 for key press
-		//SendInput(1, &ip, sizeof(INPUT));
-		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		//ip.ki.wVk = 'D'; // virtual-key code for the D key
-		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
-		//SendInput(1, &ip, sizeof(INPUT));
-		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
-		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
-		//SendInput(1, &ip, sizeof(INPUT));
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == '\0')
+	{
+		char key[5] = "0x00";
+		key[2] = cmd[2];
+		key[3] = cmd[3];
+		int vk_code = std::stoi(key, nullptr, 16);
+		keybd_event((BYTE)vk_code, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code, 0, KEYEVENTF_KEYUP, 0);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == '\0')
+	{
+		char key1[5] = "0x00";
+		char key2[5] = "0x00";
+		key1[2] = cmd[2];
+		key1[3] = cmd[3];
+		key2[2] = cmd[5];
+		key2[3] = cmd[6];
+		int vk_code1 = std::stoi(key1, nullptr, 16);
+		int vk_code2 = std::stoi(key2, nullptr, 16);
+		keybd_event((BYTE)vk_code1, 0, 0, 0);
+		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == '\0')
+	{
+		char key1[5] = "0x00";
+		char key2[5] = "0x00";
+		char key3[5] = "0x00";
+		key1[2] = cmd[2];
+		key1[3] = cmd[3];
+		key2[2] = cmd[5];
+		key2[3] = cmd[6];
+		key3[2] = cmd[8];
+		key3[3] = cmd[9];
+		int vk_code1 = std::stoi(key1, nullptr, 16);
+		int vk_code2 = std::stoi(key2, nullptr, 16);
+		int vk_code3 = std::stoi(key3, nullptr, 16);
+		keybd_event((BYTE)vk_code1, 0, 0, 0);
+		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		keybd_event((BYTE)vk_code3, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == '\0')
+	{
+		char key1[5] = "0x00";
+		char key2[5] = "0x00";
+		char key3[5] = "0x00";
+		char key4[5] = "0x00";
+		key1[2] = cmd[2];
+		key1[3] = cmd[3];
+		key2[2] = cmd[5];
+		key2[3] = cmd[6];
+		key3[2] = cmd[8];
+		key3[3] = cmd[9];
+		key4[2] = cmd[11];
+		key4[3] = cmd[12];
+		int vk_code1 = std::stoi(key1, nullptr, 16);
+		int vk_code2 = std::stoi(key2, nullptr, 16);
+		int vk_code3 = std::stoi(key3, nullptr, 16);
+		int vk_code4 = std::stoi(key4, nullptr, 16);
+		keybd_event((BYTE)vk_code1, 0, 0, 0);
+		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		keybd_event((BYTE)vk_code3, 0, 0, 0);
+		keybd_event((BYTE)vk_code4, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] != '\0')
 	{

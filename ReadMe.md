@@ -38,6 +38,8 @@ would create a Charms button on the Charms bar to generate WIN+D key press ("::1
 
 would create a Charms button on the Charms bar with some custom actions. Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
+For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
+
 See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp for more information about the possible parameters.
 
 ## Rationale
