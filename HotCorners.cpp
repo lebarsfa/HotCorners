@@ -41,6 +41,7 @@ int CBRed = 19; // In 0-255 range
 int CBGreen = 14; // In 0-255 range
 int CBBlue = 18; // In 0-255 range
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
+int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
 #pragma endregion
 
@@ -105,16 +106,56 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
 		// Simulate WIN key press
+		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+
+		//// Create a generic keyboard event structure
+		//INPUT ip;
+		//ip.type = INPUT_KEYBOARD;
+		//ip.ki.wScan = 0; // hardware scan code for key
+		//ip.ki.time = 0;
+		//ip.ki.dwExtraInfo = 0;
+
+		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
+		//ip.ki.dwFlags = 0; // 0 for key press
+		//SendInput(1, &ip, sizeof(INPUT));
+		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
+		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
+		//SendInput(1, &ip, sizeof(INPUT));
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
 		// Simulate WIN + D key press to show desktop
+		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		keybd_event('D', 0, 0, 0); // Press the D key
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+
+		//// Create a generic keyboard event structure
+		//INPUT ip;
+		//ip.type = INPUT_KEYBOARD;
+		//ip.ki.wScan = 0; // hardware scan code for key
+		//ip.ki.time = 0;
+		//ip.ki.dwExtraInfo = 0;
+
+		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
+		//ip.ki.dwFlags = 0; // 0 for key press
+		//SendInput(1, &ip, sizeof(INPUT));
+		//ip.ki.wVk = 'D'; // virtual-key code for the D key
+		//ip.ki.dwFlags = 0; // 0 for key press
+		//SendInput(1, &ip, sizeof(INPUT));
+		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//ip.ki.wVk = 'D'; // virtual-key code for the D key
+		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
+		//SendInput(1, &ip, sizeof(INPUT));
+		//ip.ki.wVk = VK_LWIN; // virtual-key code for the WIN key
+		//ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
+		//SendInput(1, &ip, sizeof(INPUT));
 	}
 	else if (cmd != NULL && cmd[0] != '\0')
 	{
@@ -270,22 +311,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		KillTimer(hwnd, IDT_TIMER1);
 		ClickAction(lclick, blCmdOrSE);
+		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDOWN:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		KillTimer(hwnd, IDT_TIMER1);
 		ClickAction(rclick, brCmdOrSE);
+		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_LBUTTONDBLCLK:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		KillTimer(hwnd, IDT_TIMER1);
 		ClickAction(ldclick, bldCmdOrSE);
+		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDBLCLK:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		KillTimer(hwnd, IDT_TIMER1);
 		ClickAction(rdclick, brdCmdOrSE);
+		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -405,6 +454,8 @@ void ParseParameters()
             CBBlue = std::stoi(arg.substr(3+strlen("CBBlue")));
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
+        else if (arg.find("--keyReleaseDelay=") == 0)
+            timerPeriod = std::stoi(arg.substr(3+strlen("keyReleaseDelay")));
         else if (arg.find("--timerPeriod=") == 0)
             timerPeriod = std::stoi(arg.substr(3+strlen("timerPeriod")));
     }
