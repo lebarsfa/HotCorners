@@ -39,9 +39,9 @@ int ytol = 5; // Tolerance for the mouse position to be considered in the corner
 int CBType = 0; // 0=Vertical, 1=Horizontal
 int CBWidth = 114; // 85 in Windows 8.1
 int CBHeight = 90;
-int CBRed = 19; // In 0-255 range
-int CBGreen = 14; // In 0-255 range
-int CBBlue = 18; // In 0-255 range
+int BGRed = 19; // In 0-255 range
+int BGGreen = 14; // In 0-255 range
+int BGBlue = 18; // In 0-255 range
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
@@ -334,7 +334,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		else {
 			// Set your desired color
-			HBRUSH hBrush = CreateSolidBrush(RGB(CBRed, CBGreen, CBBlue));
+			HBRUSH hBrush = CreateSolidBrush(RGB(BGRed, BGGreen, BGBlue));
 
 			// Fill the client area with color
 			RECT rect;
@@ -490,12 +490,12 @@ void ParseParameters()
             CBWidth = std::stoi(arg.substr(3+strlen("CBWidth")));
         else if (arg.find("--CBHeight=") == 0)
             CBHeight = std::stoi(arg.substr(3+strlen("CBHeight")));
-        else if (arg.find("--CBRed=") == 0)
-            CBRed = std::stoi(arg.substr(3+strlen("CBRed")));
-        else if (arg.find("--CBGreen=") == 0)
-            CBGreen = std::stoi(arg.substr(3+strlen("CBGreen")));
-        else if (arg.find("--CBBlue=") == 0)
-            CBBlue = std::stoi(arg.substr(3+strlen("CBBlue")));
+        else if (arg.find("--BGRed=") == 0)
+            BGRed = std::stoi(arg.substr(3+strlen("BGRed")));
+        else if (arg.find("--BGGreen=") == 0)
+            BGGreen = std::stoi(arg.substr(3+strlen("BGGreen")));
+        else if (arg.find("--BGBlue=") == 0)
+            BGBlue = std::stoi(arg.substr(3+strlen("BGBlue")));
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)
