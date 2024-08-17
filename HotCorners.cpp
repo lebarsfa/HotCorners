@@ -14,34 +14,35 @@
 #pragma endregion 
 
 #pragma region Parameters
-
-// 3 main class of Hot Corners windows: Button, CharmBar and CharmButton
-
+int HotCornerWindowType = 2; // 0=Button, 1=CharmsBar, 2=CharmsButton
 int HotCornerType = 3; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight
-char lclick[MAX_BUF_LEN] = "";//"::0";//"/c start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmBar: ""
-char rclick[MAX_BUF_LEN] = "";//"::1";//"/c winver";// CharmBar: ""
-char help[MAX_BUF_LEN] = "";//"Left-click to simulate WIN button, right-click to simulate WIN+D";// CharmBar: ""
-char image[MAX_BUF_LEN] = "";//"Start.bmp";// CharmBar: ""
+int blCmdOrShellExecute = 1; // 0=ShellExecute, 1=cmd
+int brCmdOrShellExecute = 0; // 0=ShellExecute, 1=cmd
+char lclick[MAX_BUF_LEN] = "start \"\" cmd /c \"dir %SystemDrive% && pause\"";//"::0";//"";// CharmsBar: ""
+char rclick[MAX_BUF_LEN] = "winver";//"";//"::1";// CharmsBar: ""
+char help[MAX_BUF_LEN] = "";//"Left-click to simulate WIN button, right-click to simulate WIN+D";// CharmsBar: ""
+char image[MAX_BUF_LEN] = "Show_desktop.bmp";//"Start.bmp";//"";// CharmsBar: ""
 int offset_image_x = 0;
-int offset_image_y = 0;//-300;//CharmButton: -300, Button and CharmBar: 0
+int offset_image_y = -414;//0;//CharmButton: -300/-414, Button and CharmsBar: 0
 int ptx_err = 5;
 int pty_err = 5;
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
-char CLASS_NAME[] = "Hot Corners Charm Bar Class";//"Hot Corners Button Class";//
 int CharmsType = 0; // 0=Vertical, 1=Horizontal
 int CharmsWidth = 114; // 85 in Windows 8.1
 int CharmsHeight = 90;
 int CharmsRed = 19;
 int CharmsGreen = 14;
 int CharmsBlue = 18;
-//int delay = 100;//0;// CharmButton: 100, otherwise 0
 int timerPeriod = 100;
 #pragma endregion
 
-#pragma region  Global variables
+#pragma region Global variables
 int screenWidth = 0, screenHeight = 0, x = 0, y = 0, wx = 0, wy = 0;
 HBITMAP hBitmap;
 BITMAP bitmap;
+char HOT_CORNERS_BUTTON_CLASS_NAME[] = "Hot Corners Button Class";
+char HOT_CORNERS_CHARMS_BAR_CLASS_NAME[] = "Hot Corners Charms Bar Class";
+char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
 #pragma endregion
 
 void UpdateWindowPosition() 
@@ -91,7 +92,7 @@ void UpdateWindowPosition()
 	}
 }
 
-void ClickAction(char* cmd)
+void ClickAction(char* cmd, int bCmdOrShellExecute)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
@@ -109,9 +110,50 @@ void ClickAction(char* cmd)
 	}
 	else if (cmd != NULL && cmd[0] != '\0')
 	{
-		// Run the command in rclick
-		ShellExecute(NULL, "open", "cmd.exe", rclick, NULL, SW_HIDE);
+		if (bCmdOrShellExecute)
+		{
+			// Execute the command using cmd.exe
+			char cmdparams[MAX_BUF_LEN+3] = "";
+			strcat_s(cmdparams, MAX_BUF_LEN+3, "/c ");
+			strcat_s(cmdparams, MAX_BUF_LEN+3, cmd);
+			ShellExecute(NULL, "open", "cmd.exe", cmdparams, NULL, SW_HIDE);
+		}
+		else
+		{
+			// Execute the command using ShellExecute
+			ShellExecute(NULL, "open", cmd, NULL, NULL, SW_SHOW);
+		}
 	}
+}
+
+BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
+{
+    char class_name[80];
+    GetClassName(hwnd, class_name, sizeof(class_name));
+
+    // If the class name matches, hide the window
+    if ((strcmp(class_name, HOT_CORNERS_CHARMS_BAR_CLASS_NAME) == 0)||
+		(strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0))
+    {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+
+    return TRUE; // Continue enumeration
+}
+
+BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
+{
+    char class_name[80];
+    GetClassName(hwnd, class_name, sizeof(class_name));
+
+    // If the class name matches, set the window to be always on top
+    if (strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0)
+    {
+		ShowWindow(hwnd, SW_SHOW);
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
+
+    return TRUE; // Continue enumeration
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -155,12 +197,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_LBUTTONDOWN:
-		ClickAction(lclick);
-		ShowWindow(hwnd, SW_HIDE);
+		ClickAction(lclick, blCmdOrShellExecute);
+		if (HotCornerWindowType == 0) ShowWindow(hwnd, SW_HIDE);
 		break;
 	case WM_RBUTTONDOWN:
-		ClickAction(rclick);
-		ShowWindow(hwnd, SW_HIDE);
+		ClickAction(rclick, brCmdOrShellExecute);
+		if (HotCornerWindowType == 0) ShowWindow(hwnd, SW_HIDE);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -173,34 +215,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_MOUSELEAVE:
 	{
-		ShowWindow(hwnd, SW_HIDE);
-
-		//
-		// To check...
-		// 
-		//// Get the current mouse position
-		//POINT pt;
-		//GetCursorPos(&pt);
-		//if ((CharmsType == 0 && pt.x >= wx && pt.x <= x)||(CharmsType == 1 && pt.y >= wy && pt.y <= y))
-		//{
-		//	ShowWindow(hwnd, SW_HIDE);
-		//	if (image != NULL && image[0] != '\0')
-		//	{
-		//		HWND hTargetWnd = FindWindow("Hot Corners Charm Bar Class", NULL);
-		//		if (hTargetWnd != NULL)
-		//		{
-		//			ShowWindow(hTargetWnd, SW_HIDE);
-		//		}
-		//	}
-		//	else
-		//	{
-		//		HWND hTargetWnd = FindWindow("Hot Corners Button Class", NULL);
-		//		if (hTargetWnd != NULL)
-		//		{
-		//			ShowWindow(hTargetWnd, SW_HIDE);
-		//		}
-		//	}
-		//}
+		switch (HotCornerWindowType)
+		{
+		case 0:
+			ShowWindow(hwnd, SW_HIDE);
+			break;
+		default:
+		{
+			// Get the current mouse position
+			POINT pt;
+			GetCursorPos(&pt);
+			if ((CharmsType == 0 && pt.x >= wx && pt.x <= x)||(CharmsType == 1 && pt.y >= wy && pt.y <= y))
+			{
+				EnumWindows(EnumWindowsHideProc, 0);
+			}
+			break;
+		}
+		}
 		break;
 	}
 	case WM_TIMER:
@@ -210,6 +241,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case IDT_TIMER1:
 			// Screen dimensions may have changed
 			UpdateWindowPosition();
+			MoveWindow(hwnd, x+offset_image_x, y+offset_image_y, wx, wy, TRUE);
 
 			// Get the current mouse position
 			POINT pt;
@@ -222,27 +254,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				(HotCornerType == 2 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= screenHeight-1-pty_err && pt.y <= screenHeight-1+pty_err)||
 				(HotCornerType == 3 && pt.x >= screenWidth-1-ptx_err && pt.x <= screenWidth-1+ptx_err && pt.y >= screenHeight-1-pty_err && pt.y <= screenHeight-1+pty_err))
 			{
-				MoveWindow(hwnd, x+offset_image_x, y+offset_image_y, wx, wy, TRUE);
 				ShowWindow(hwnd, SW_SHOW);
-
-				//
-				// To check...
-				// 
-				//if (image != NULL && image[0] != '\0')
-				//{
-				//	// Get the handle to the window of the specific class
-				//	HWND hTargetWnd = FindWindow("Hot Corners Charm Bar Class", NULL);
-				//	if (hTargetWnd != NULL)
-				//	{
-				//		// Set your window to be always on top of the target window
-				//		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-				//	}
-				//}
-
-				//if (image != NULL && image[0] != '\0' && delay != 0)
-				//{
-				//	Sleep(delay); // Delay for Charms bar to appear
-				//}
+				if (HotCornerWindowType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 			}
 			break;
 		}
@@ -278,6 +291,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		// Get the bitmap's dimensions
 		GetObject(hBitmap, sizeof(bitmap), &bitmap);
+	}
+
+	char CLASS_NAME[80];
+	switch (HotCornerWindowType)
+	{
+	case 2:
+		strcpy_s(CLASS_NAME, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME);
+		break;
+	case 1:
+		strcpy_s(CLASS_NAME, HOT_CORNERS_CHARMS_BAR_CLASS_NAME);
+		break;
+	default:
+		strcpy_s(CLASS_NAME, HOT_CORNERS_BUTTON_CLASS_NAME);
+		break;
 	}
 
 	WNDCLASS wc = { };
