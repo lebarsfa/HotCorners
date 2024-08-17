@@ -1,24 +1,104 @@
-#include <windows.h>
-#include <winuser.h>
-#include <windowsx.h>
-#include <commctrl.h>
+// HotCorners.cpp : Defines the entry point for the application.
+//
+
+#include "framework.h"
+#include "HotCorners.h"
+
+#pragma region Defines
+#define EXIT_INVALID_PARAMETER 3
+#define EXIT_OUT_OF_MEMORY 6
+
+#define MAX_BUF_LEN 1024
 
 #define IDT_TIMER1 1
+#pragma endregion 
 
-int HotCornerType = 1;
-char lclick[] = "/c start \"\" cmd /c \"dir %SystemDrive% && pause\"";
-char rclick[] = "";//"/c winver";
-char help[] = "Left-click to simulate WIN button, right-click to simulate WIN+D";
-char image[] = "Start.bmp";
-
+#pragma region Parameters
+int HotCornerType = 0; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight
+char lclick[MAX_BUF_LEN] = "::0";//"";//"/c start \"\" cmd /c \"dir %SystemDrive% && pause\"";
+char rclick[MAX_BUF_LEN] = "::1";//"";//"/c winver";
+char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";
+char image[MAX_BUF_LEN] = "Start.bmp";//"";//
+int offset_image_x = 0;
+int offset_image_y = 0;
 int ptx_err = 5;
 int pty_err = 5;
+int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136, set to 128 to make a background for a Charms bar
+int CharmsWidth = 90;
+int CharmsHeight = 90;
+int CharmsRed = 19;
+int CharmsGreen = 14;
+int CharmsBlue = 18;
+int timerPeriod = 100;
+#pragma endregion
 
-int screenWidth = 0;
-int screenHeight = 0;
-
+#pragma region  Global variables
+int screenWidth = 0, screenHeight = 0, x = 0, y = 0, wx = 0, wy = 0;
 HBITMAP hBitmap;
 BITMAP bitmap;
+#pragma endregion
+
+void UpdateWindowPosition() 
+{
+	screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	x = 0; y = 0;
+	if (image != NULL && image[0] != '\0')
+	{
+		wx = bitmap.bmWidth;
+		wy = bitmap.bmHeight;
+	}
+	else
+	{
+		wx = CharmsWidth;
+		wy = screenHeight;
+	}
+
+	if (HotCornerType == 0)
+	{
+		x = 0;
+		y = 0;
+	}
+	else if (HotCornerType == 1)
+	{
+		x = screenWidth - wx;
+		y = 0;
+	}
+	else if (HotCornerType == 2)
+	{
+		x = 0;
+		y = screenHeight - wy;
+	}
+	else if (HotCornerType == 3)
+	{
+		x = screenWidth - wx;
+		y = screenHeight - wy;
+	}
+}
+
+void ClickAction(char* cmd)
+{
+	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
+	{
+		// Simulate WIN key press
+		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
+	{
+		// Simulate WIN + D key press to show desktop
+		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		keybd_event('D', 0, 0, 0); // Press the D key
+		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
+		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+	}
+	else if (cmd != NULL && cmd[0] != '\0')
+	{
+		// Run the command in rclick
+		ShellExecute(NULL, "open", "cmd.exe", rclick, NULL, SW_HIDE);
+	}
+}
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -29,60 +109,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 
-		// Create a memory device context
-		HDC hMemDC = CreateCompatibleDC(hdc);
+		if (image != NULL && image[0] != '\0')
+		{
+			// Create a memory device context
+			HDC hMemDC = CreateCompatibleDC(hdc);
 
-		// Select the bitmap object into the memory device context
-		HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
+			// Select the bitmap object into the memory device context
+			HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
 
-		// Draw the bitmap at the top-left corner
-		BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
+			// Draw the bitmap at the top-left corner
+			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
 
-		// Cleanup
-		SelectObject(hMemDC, hOldBitmap);
-		DeleteDC(hMemDC);
+			// Cleanup
+			SelectObject(hMemDC, hOldBitmap);
+			DeleteDC(hMemDC);
+		}
+		else {
+			// Set your desired color
+			HBRUSH hBrush = CreateSolidBrush(RGB(CharmsRed, CharmsGreen, CharmsBlue));
+
+			// Fill the client area with color
+			RECT rect;
+			GetClientRect(hwnd, &rect);
+			FillRect(hdc, &rect, hBrush);
+
+			// Cleanup
+			DeleteObject(hBrush);
+		}
 
 		EndPaint(hwnd, &ps);
 		break;
 	}
 	case WM_LBUTTONDOWN:
-		//
-		// Action...
-		//
-
-		if (lclick != NULL && lclick[0] != '\0')
-		{
-			// Run the command in lclick
-			ShellExecute(NULL, "open", "cmd.exe", lclick, NULL, SW_HIDE);
-		}
-		else
-		{
-			// Simulate WIN key press
-			keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
-			keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
-		}
-
+		ClickAction(lclick);
 		ShowWindow(hwnd, SW_HIDE);
 		break;
 	case WM_RBUTTONDOWN:
-		//
-		// Action...
-		//
-
-		if (rclick != NULL && rclick[0] != '\0')
-		{
-			// Run the command in rclick
-			ShellExecute(NULL, "open", "cmd.exe", rclick, NULL, SW_HIDE);
-		}
-		else
-		{
-			// Simulate WIN + D key press to show desktop
-			keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
-			keybd_event('D', 0, 0, 0); // Press the D key
-			keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
-			keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
-		}
-
+		ClickAction(rclick);
 		ShowWindow(hwnd, SW_HIDE);
 		break;
 	case WM_MOUSEMOVE:
@@ -102,24 +165,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case IDT_TIMER1:
+			// Screen dimensions may have changed
+			UpdateWindowPosition();
+
 			// Get the current mouse position
 			POINT pt;
 			GetCursorPos(&pt);
 
 			// Check if the mouse is in a corner of the screen
-			if ((HotCornerType == 1 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
-				(HotCornerType == 2 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
-				(HotCornerType == 3 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err)||
-				(HotCornerType == 4 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err))
+			if ((HotCornerType == 0 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
+				(HotCornerType == 1 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
+				(HotCornerType == 2 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err)||
+				(HotCornerType == 3 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err))
 			{
+				MoveWindow(hwnd, x+offset_image_x, y+offset_image_y, wx, wy, TRUE);
 				ShowWindow(hwnd, SW_SHOW);
-
-				MSG msg = { };
-				while (GetMessage(&msg, NULL, 0, 0))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
 			}
 			break;
 		}
@@ -137,19 +197,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-	// Load the bitmap image
-	hBitmap = (HBITMAP)LoadImage(NULL, image, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-
-	if (hBitmap == NULL)
+#pragma region Parameter validation
+	if (HotCornerType < 0 || HotCornerType > 3)
 	{
-		return 0;
+		return EXIT_INVALID_PARAMETER;
 	}
+#pragma endregion
 
-	// Get the bitmap's dimensions
-	GetObject(hBitmap, sizeof(bitmap), &bitmap);
+	if (image != NULL && image[0] != '\0')
+	{	
+		// Load the bitmap image
+		hBitmap = (HBITMAP)LoadImage(NULL, image, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+		if (hBitmap == NULL)
+		{
+			return EXIT_INVALID_PARAMETER;
+		}
+
+		// Get the bitmap's dimensions
+		GetObject(hBitmap, sizeof(bitmap), &bitmap);
+	}
 
 	const char CLASS_NAME[] = "Hot Corners Class";
 
@@ -161,35 +227,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	RegisterClass(&wc);
 
-	int x = 0, y = 0, wx = bitmap.bmWidth, wy = bitmap.bmHeight;
-	if (HotCornerType == 1)
-	{
-		x = 0;
-		y = 0;
-	}
-	else if (HotCornerType == 2)
-	{
-		x = screenWidth - wx;
-		y = 0;
-	}
-	else if (HotCornerType == 3)
-	{
-		x = 0;
-		y = screenHeight - wy;
-	}
-	else if (HotCornerType == 4)
-	{
-		x = screenWidth - wx;
-		y = screenHeight - wy;
-	}
+	UpdateWindowPosition();
 
-	HWND hwnd;
-	hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, CLASS_NAME, "Hot Corners", WS_POPUP,
-		x, y, wx, wy, NULL, NULL, hInstance, NULL);
-
+	HWND hwnd = CreateWindowEx(windowStyle, CLASS_NAME, "Hot Corners", WS_POPUP,
+		x+offset_image_x, y+offset_image_y, wx, wy, NULL, NULL, hInstance, NULL);
 	if (hwnd == NULL)
 	{
-		return 0;
+		return EXIT_INVALID_PARAMETER;
 	}
 
 	HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
@@ -197,10 +241,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		hwnd, NULL, hInstance, NULL);
-
 	if (!hwndTip)
 	{
-		return FALSE;
+		return EXIT_OUT_OF_MEMORY;
 	}
 
 	TOOLINFO toolInfo = { 0 };
@@ -211,7 +254,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	toolInfo.lpszText = help;
 	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 
-	SetTimer(hwnd, IDT_TIMER1, 100, (TIMERPROC)NULL);
+	SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 	
 	MSG msg = { };
 	while (GetMessage(&msg, NULL, 0, 0))
