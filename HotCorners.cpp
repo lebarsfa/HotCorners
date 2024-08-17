@@ -14,21 +14,27 @@
 #pragma endregion 
 
 #pragma region Parameters
-int HotCornerType = 0; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight
-char lclick[MAX_BUF_LEN] = "::0";//"";//"/c start \"\" cmd /c \"dir %SystemDrive% && pause\"";
-char rclick[MAX_BUF_LEN] = "::1";//"";//"/c winver";
-char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";
-char image[MAX_BUF_LEN] = "Start.bmp";//"";//
+
+// 3 main class of Hot Corners windows: Button, CharmBar and CharmButton
+
+int HotCornerType = 3; // 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight
+char lclick[MAX_BUF_LEN] = "";//"::0";//"/c start \"\" cmd /c \"dir %SystemDrive% && pause\"";// CharmBar: ""
+char rclick[MAX_BUF_LEN] = "";//"::1";//"/c winver";// CharmBar: ""
+char help[MAX_BUF_LEN] = "";//"Left-click to simulate WIN button, right-click to simulate WIN+D";// CharmBar: ""
+char image[MAX_BUF_LEN] = "";//"Start.bmp";// CharmBar: ""
 int offset_image_x = 0;
-int offset_image_y = 0;
+int offset_image_y = 0;//-300;//CharmButton: -300, Button and CharmBar: 0
 int ptx_err = 5;
 int pty_err = 5;
-int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136, set to 128 to make a background for a Charms bar
-int CharmsWidth = 90;
+int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
+char CLASS_NAME[] = "Hot Corners Charm Bar Class";//"Hot Corners Button Class";//
+int CharmsType = 0; // 0=Vertical, 1=Horizontal
+int CharmsWidth = 114; // 85 in Windows 8.1
 int CharmsHeight = 90;
 int CharmsRed = 19;
 int CharmsGreen = 14;
 int CharmsBlue = 18;
+//int delay = 100;//0;// CharmButton: 100, otherwise 0
 int timerPeriod = 100;
 #pragma endregion
 
@@ -51,8 +57,16 @@ void UpdateWindowPosition()
 	}
 	else
 	{
-		wx = CharmsWidth;
-		wy = screenHeight;
+		if (CharmsType == 1)
+		{
+			wx = screenWidth;
+			wy = CharmsHeight;
+		}
+		else
+		{
+			wx = CharmsWidth;
+			wy = screenHeight;
+		}
 	}
 
 	if (HotCornerType == 0)
@@ -158,8 +172,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_MOUSELEAVE:
+	{
 		ShowWindow(hwnd, SW_HIDE);
+
+		//
+		// To check...
+		// 
+		//// Get the current mouse position
+		//POINT pt;
+		//GetCursorPos(&pt);
+		//if ((CharmsType == 0 && pt.x >= wx && pt.x <= x)||(CharmsType == 1 && pt.y >= wy && pt.y <= y))
+		//{
+		//	ShowWindow(hwnd, SW_HIDE);
+		//	if (image != NULL && image[0] != '\0')
+		//	{
+		//		HWND hTargetWnd = FindWindow("Hot Corners Charm Bar Class", NULL);
+		//		if (hTargetWnd != NULL)
+		//		{
+		//			ShowWindow(hTargetWnd, SW_HIDE);
+		//		}
+		//	}
+		//	else
+		//	{
+		//		HWND hTargetWnd = FindWindow("Hot Corners Button Class", NULL);
+		//		if (hTargetWnd != NULL)
+		//		{
+		//			ShowWindow(hTargetWnd, SW_HIDE);
+		//		}
+		//	}
+		//}
 		break;
+	}
 	case WM_TIMER:
 	{
 		switch (wParam)
@@ -173,13 +216,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			GetCursorPos(&pt);
 
 			// Check if the mouse is in a corner of the screen
+			// On Windows 8.1, it also reacts when x==screenWidth and 0<=y<=10, to check when multiple monitors for Charms there seem to be timings and differences depending on the corner...
 			if ((HotCornerType == 0 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
-				(HotCornerType == 1 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
-				(HotCornerType == 2 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err)||
-				(HotCornerType == 3 && pt.x >= screenWidth-ptx_err && pt.x <= screenWidth+ptx_err && pt.y >= screenHeight-pty_err && pt.y <= screenHeight+pty_err))
+				(HotCornerType == 1 && pt.x >= screenWidth-1-ptx_err && pt.x <= screenWidth-1+ptx_err && pt.y >= -pty_err && pt.y <= pty_err)||
+				(HotCornerType == 2 && pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= screenHeight-1-pty_err && pt.y <= screenHeight-1+pty_err)||
+				(HotCornerType == 3 && pt.x >= screenWidth-1-ptx_err && pt.x <= screenWidth-1+ptx_err && pt.y >= screenHeight-1-pty_err && pt.y <= screenHeight-1+pty_err))
 			{
 				MoveWindow(hwnd, x+offset_image_x, y+offset_image_y, wx, wy, TRUE);
 				ShowWindow(hwnd, SW_SHOW);
+
+				//
+				// To check...
+				// 
+				//if (image != NULL && image[0] != '\0')
+				//{
+				//	// Get the handle to the window of the specific class
+				//	HWND hTargetWnd = FindWindow("Hot Corners Charm Bar Class", NULL);
+				//	if (hTargetWnd != NULL)
+				//	{
+				//		// Set your window to be always on top of the target window
+				//		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+				//	}
+				//}
+
+				//if (image != NULL && image[0] != '\0' && delay != 0)
+				//{
+				//	Sleep(delay); // Delay for Charms bar to appear
+				//}
 			}
 			break;
 		}
@@ -217,8 +280,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		GetObject(hBitmap, sizeof(bitmap), &bitmap);
 	}
 
-	const char CLASS_NAME[] = "Hot Corners Class";
-
 	WNDCLASS wc = { };
 
 	wc.lpfnWndProc = WndProc;
@@ -236,23 +297,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return EXIT_INVALID_PARAMETER;
 	}
 
-	HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
-		WS_POPUP | TTS_ALWAYSTIP,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		hwnd, NULL, hInstance, NULL);
-	if (!hwndTip)
+	if (help != NULL && help[0] != '\0')
 	{
-		return EXIT_OUT_OF_MEMORY;
-	}
+		HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+			WS_POPUP | TTS_ALWAYSTIP,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			hwnd, NULL, hInstance, NULL);
+		if (!hwndTip)
+		{
+			return EXIT_OUT_OF_MEMORY;
+		}
 
-	TOOLINFO toolInfo = { 0 };
-	toolInfo.cbSize = sizeof(toolInfo);
-	toolInfo.hwnd = hwnd;
-	toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	toolInfo.uId = (UINT_PTR)hwnd;
-	toolInfo.lpszText = help;
-	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+		TOOLINFO toolInfo = { 0 };
+		toolInfo.cbSize = sizeof(toolInfo);
+		toolInfo.hwnd = hwnd;
+		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+		toolInfo.uId = (UINT_PTR)hwnd;
+		toolInfo.lpszText = help;
+		SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+	}
 
 	SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
 	
