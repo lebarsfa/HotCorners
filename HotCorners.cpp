@@ -13,13 +13,21 @@
 #define IDT_TIMER1 1
 #pragma endregion 
 
+//
+// Double-clicks do not work probably because the window is hidden after the first click...
+// 
+
 #pragma region Parameters
 int HCWType = 0; // Hot Corner Window Type: 0=Button, 1=CharmsBar, 2=CharmsButton
 int HCType = 0; // Hot Corner Type: 0=TopLeft, 1=TopRight, 2=BottomLeft, 3=BottomRight (CharmsButton and CharmsBar: 3)
-int blCmdOrSE = 0; // How to execute the action for a left-click. 0=ShellExecute, 1=cmd
-int brCmdOrSE = 1; // How to execute the action for a right-click. 0=ShellExecute, 1=cmd
-char lclick[MAX_BUF_LEN] = "::0";//"";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// Action for a left-click. CharmsBar: ""
-char rclick[MAX_BUF_LEN] = "::1";//"";//"::0";//"winver";// Action for a left-click. CharmsBar: ""
+char lclick[MAX_BUF_LEN] = "::0";//"";//"::1";//"start \"\" cmd /c \"dir %SystemDrive% && pause\"";// Action for a left click. CharmsBar: ""
+char rclick[MAX_BUF_LEN] = "::1";//"";//"::0";//"winver";// Action for a right click. CharmsBar: ""
+char ldclick[MAX_BUF_LEN] = "";
+char rdclick[MAX_BUF_LEN] = "";
+int blCmdOrSE = 0; // How to execute the action for a left click. 0=ShellExecute, 1=cmd
+int brCmdOrSE = 1; // How to execute the action for a right click. 0=ShellExecute, 1=cmd
+int bldCmdOrSE = 0; // How to execute the action for a left double-click. 0=ShellExecute, 1=cmd
+int brdCmdOrSE = 1; // How to execute the action for a right double-click. 0=ShellExecute, 1=cmd
 char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";//"";// CharmsBar: ""
 char image[MAX_BUF_LEN] = "Start.bmp";//"";//"Show_desktop.bmp";// Image to display. CharmsBar: ""
 int imofsx = 0; // Position to display the button or bar
@@ -260,14 +268,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_LBUTTONDOWN:
-		ClickAction(lclick, blCmdOrSE);
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		ClickAction(lclick, blCmdOrSE);
 		break;
 	case WM_RBUTTONDOWN:
-		ClickAction(rclick, brCmdOrSE);
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		ClickAction(rclick, brCmdOrSE);
+		break;
+	case WM_LBUTTONDBLCLK:
+		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		ClickAction(ldclick, bldCmdOrSE);
+		break;
+	case WM_RBUTTONDBLCLK:
+		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+		ClickAction(rdclick, brdCmdOrSE);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -345,14 +363,22 @@ void ParseParameters()
             HCWType = std::stoi(arg.substr(3+strlen("HCWType")));
         else if (arg.find("--HCType=") == 0)
             HCType = std::stoi(arg.substr(3+strlen("HCType")));
-        else if (arg.find("--blCmdOrSE=") == 0)
-            blCmdOrSE = std::stoi(arg.substr(3+strlen("blCmdOrSE")));
-        else if (arg.find("--brCmdOrSE=") == 0)
-            brCmdOrSE = std::stoi(arg.substr(3+strlen("brCmdOrSE")));
         else if (arg.find("--lclick=") == 0)
             strncpy_s(lclick, arg.substr(3+strlen("lclick")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--rclick=") == 0)
             strncpy_s(rclick, arg.substr(3+strlen("rclick")).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--ldclick=") == 0)
+            strncpy_s(ldclick, arg.substr(3+strlen("ldclick")).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--rdclick=") == 0)
+            strncpy_s(rclick, arg.substr(3+strlen("rdclick")).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--blCmdOrSE=") == 0)
+            blCmdOrSE = std::stoi(arg.substr(3+strlen("blCmdOrSE")));
+        else if (arg.find("--brCmdOrSE=") == 0)
+            brCmdOrSE = std::stoi(arg.substr(3+strlen("brCmdOrSE")));
+        else if (arg.find("--bldCmdOrSE=") == 0)
+            blCmdOrSE = std::stoi(arg.substr(3+strlen("bldCmdOrSE")));
+        else if (arg.find("--brdCmdOrSE=") == 0)
+            brCmdOrSE = std::stoi(arg.substr(3+strlen("brdCmdOrSE")));
         else if (arg.find("--help=") == 0)
             strncpy_s(help, arg.substr(3+strlen("help")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--image=") == 0)
