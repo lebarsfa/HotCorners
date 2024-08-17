@@ -2,6 +2,11 @@
 #include <winuser.h>
 #include <windowsx.h>
 
+#define IDT_TIMER1 1
+
+int ptx_err = 5;
+int pty_err = 5;
+
 HBITMAP hBitmap;
 BITMAP bitmap;
 
@@ -39,7 +44,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
 
 		ShowWindow(hwnd, SW_HIDE);
-		PostQuitMessage(0);
+		//PostQuitMessage(0);
 		break;
 	case WM_RBUTTONDOWN:
 		//
@@ -53,7 +58,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
 
 		ShowWindow(hwnd, SW_HIDE);
-		PostQuitMessage(0);
+		//PostQuitMessage(0);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -66,9 +71,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_MOUSELEAVE:
 		ShowWindow(hwnd, SW_HIDE);
-		PostQuitMessage(0);
+		//PostQuitMessage(0);
 		break;
+	case WM_TIMER:
+	{
+		switch (wParam)
+		{
+		case IDT_TIMER1:
+			// Get the current mouse position
+			POINT pt;
+			GetCursorPos(&pt);
+
+			// Check if the mouse is in the top-left corner of the screen
+			if (pt.x >= -ptx_err && pt.x <= ptx_err && pt.y >= -pty_err && pt.y <= pty_err)
+				//if (pt.x <= ptx_err && pt.y >= screenHeight-pty_err)
+			{
+				ShowWindow(hwnd, SW_SHOW);
+
+				MSG msg = { };
+				while (GetMessage(&msg, NULL, 0, 0))
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+			break;
+		}
+		break;
+	}
 	case WM_DESTROY:
+		KillTimer(hwnd, IDT_TIMER1);
 		PostQuitMessage(0);
 		break;
 	default:
@@ -113,17 +145,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	for (;;)
-	{
-		// Get the current mouse position
-		POINT pt;
-		GetCursorPos(&pt);
-
-		// Check if the mouse is in the top-left corner of the screen
-		if (pt.x <= 5 && pt.y <= 5)
-			//if (pt.x <= 5 && pt.y >= screenHeight-5)
-		{
-			ShowWindow(hwnd, SW_SHOW);
+	SetTimer(hwnd, IDT_TIMER1, 100, (TIMERPROC)NULL);
+	
+	//for (;;)
+	//{
+	//	// Get the current mouse position
+	//	POINT pt;
+	//	GetCursorPos(&pt);
+	//
+	//	// Check if the mouse is in the top-left corner of the screen
+	//	if (pt.x <= ptx_err && pt.y <= pty_err)
+	//		//if (pt.x <= ptx_err && pt.y >= screenHeight-pty_err)
+	//	{
+	//		ShowWindow(hwnd, SW_SHOW);
 
 			MSG msg = { };
 			while (GetMessage(&msg, NULL, 0, 0))
@@ -131,10 +165,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-		}
+	//	}
 
-		Sleep(100);
-	}
+	//	Sleep(100);
+	//}
 
 	//if(hBitmap != NULL)
 	//{
