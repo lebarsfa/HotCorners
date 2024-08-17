@@ -30,8 +30,10 @@ int bldCmdOrSE = 0; // How to execute the action for a left double-click. 0=Shel
 int brdCmdOrSE = 1; // How to execute the action for a right double-click. 0=ShellExecute, 1=cmd
 char help[MAX_BUF_LEN] = "Left-click to simulate WIN button, right-click to simulate WIN+D";//"";// CharmsBar: ""
 char image[MAX_BUF_LEN] = "Start.bmp";//"";//"Show_desktop.bmp";// Image to display. CharmsBar: ""
-int imofsx = 0; // Position to display the button or bar
-int imofsy = 0; // Position to display the button or bar. CharmsButton: -300/-414, Button and CharmsBar: 0
+int imofsx = 0; // Position offset to display the button or bar
+int imofsy = 0; // Position offset to display the button or bar. CharmsButton: -300/-414, Button and CharmsBar: 0
+int HCofsx = 0; // Position offset for the hot corner
+int HCofsy = 0; // Position offset for the hot corner
 int xtol = 5; // Tolerance for the mouse position to be considered in the corner
 int ytol = 5; // Tolerance for the mouse position to be considered in the corner
 int CBType = 0; // 0=Vertical, 1=Horizontal
@@ -357,7 +359,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Get the current mouse position
 			POINT pt;
 			GetCursorPos(&pt);
-			if ((CBType == 0 && pt.x >= wx && pt.x <= x)||(CBType == 1 && pt.y >= wy && pt.y <= y))
+			if ((CBType == 0 && pt.x+HCofsx >= wx && pt.x+HCofsx <= x)||(CBType == 1 && pt.y+HCofsy >= wy && pt.y+HCofsy <= y))
 			{
 				EnumWindows(EnumWindowsHideProc, 0);
 			}
@@ -381,10 +383,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Check if the mouse is in a corner of the screen
 			// On Windows 8.1, it also reacts when x==screenWidth and 0<=y<=10, to check when multiple monitors for Charms there seem to be timings and differences depending on the corner...
-			if ((HCType == 0 && pt.x >= -xtol && pt.x <= xtol && pt.y >= -ytol && pt.y <= ytol)||
-				(HCType == 1 && pt.x >= screenWidth-1-xtol && pt.x <= screenWidth-1+xtol && pt.y >= -ytol && pt.y <= ytol)||
-				(HCType == 2 && pt.x >= -xtol && pt.x <= xtol && pt.y >= screenHeight-1-ytol && pt.y <= screenHeight-1+ytol)||
-				(HCType == 3 && pt.x >= screenWidth-1-xtol && pt.x <= screenWidth-1+xtol && pt.y >= screenHeight-1-ytol && pt.y <= screenHeight-1+ytol))
+			if ((HCType == 0 && pt.x+HCofsx >= -xtol && pt.x+HCofsx <= xtol && pt.y+HCofsy >= -ytol && pt.y+HCofsy <= ytol)||
+				(HCType == 1 && pt.x+HCofsx >= screenWidth-1-xtol && pt.x+HCofsx <= screenWidth-1+xtol && pt.y+HCofsy >= -ytol && pt.y+HCofsy <= ytol)||
+				(HCType == 2 && pt.x+HCofsx >= -xtol && pt.x+HCofsx <= xtol && pt.y+HCofsy >= screenHeight-1-ytol && pt.y+HCofsy <= screenHeight-1+ytol)||
+				(HCType == 3 && pt.x+HCofsx >= screenWidth-1-xtol && pt.x+HCofsx <= screenWidth-1+xtol && pt.y+HCofsy >= screenHeight-1-ytol && pt.y+HCofsy <= screenHeight-1+ytol))
 			{
 				ShowWindow(hwnd, SW_SHOW);
 				if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
@@ -436,6 +438,10 @@ void ParseParameters()
             imofsx = std::stoi(arg.substr(3+strlen("imofsx")));
         else if (arg.find("--imofsy=") == 0)
             imofsy = std::stoi(arg.substr(3+strlen("imofsy")));
+        else if (arg.find("--HCofsx=") == 0)
+            imofsx = std::stoi(arg.substr(3+strlen("HCofsx")));
+        else if (arg.find("--HCofsy=") == 0)
+            imofsy = std::stoi(arg.substr(3+strlen("HCofsy")));
         else if (arg.find("--xtol=") == 0)
             xtol = std::stoi(arg.substr(3+strlen("xtol")));
         else if (arg.find("--ytol=") == 0)
