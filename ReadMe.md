@@ -16,7 +16,6 @@ Touch screens are not yet supported.
 Download: see https://github.com/lebarsfa/HotCorners/releases.
 Extract and copy the folder to e.g. `C:\Program Files\`.
 Create shortcuts to all executables and place them in `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
-You might need https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170.
 
 ## Rationale
 
