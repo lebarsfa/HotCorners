@@ -4,9 +4,19 @@ Display customizable buttons or bars when moving the mouse to the corners of the
 
 <p float="left">
   <img src="./Screenshots/Button.png" width="400" alt="Button" />
+  <img src="./Screenshots/CharmsBarWith2CharmsButtons.png" width="400" alt="Charms bar with 2 Charms buttons" />
 </p>
 
 By default, the button is displayed in the top-left corner of the screen and a left-click will show `Start menu` while a right-click will act as `Show desktop` function.
+Another alternative is to display a `Charms bar` from the bottom-right corner.
+Touch screens are not yet supported.
+
+## Installation
+
+Download: see https://github.com/lebarsfa/HotCorners/releases.
+Extract and copy the folder to e.g. `C:\Program Files\`.
+Create shortcuts to all executables and place them in `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
+You might need https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170.
 
 ## Rationale
 
