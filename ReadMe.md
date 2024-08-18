@@ -17,6 +17,8 @@ Download: see https://github.com/lebarsfa/HotCorners/releases.
 Extract and copy the folder to `C:\Program Files\`.
 Move the provided shortcuts to `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
 
+The default parameters assume a screen of 1920x1080 resolution.
+
 ## Customization
 
 In the shortcut `Target` property, you can add parameters to customize the buttons and bars. You can create more shortcuts with different parameters to have different buttons.
@@ -33,6 +35,10 @@ would create a Charms button on the Charms bar to generate WIN key press ("::0" 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --imofsy=-414
 
 would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmdl1c1="::"
+
+would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::" is a hardcoded value).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --blCmdOrSE=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrSE=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --imofsy=-528
 

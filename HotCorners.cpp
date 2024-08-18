@@ -37,19 +37,23 @@ int HCofsy = 0; // Position offset for the hot corner
 int xtol = 5; // Tolerance for the mouse position to be considered in the corner
 int ytol = 5; // Tolerance for the mouse position to be considered in the corner
 int CBType = 0; // 0=Vertical, 1=Horizontal
-int CBWidth = 114; // 85 in Windows 8.1
+int CBWidth = 114; // 86 in Windows 8
 int CBHeight = 90;
-int BGRed = 19; // In 0-255 range
-int BGGreen = 14; // In 0-255 range
-int BGBlue = 18; // In 0-255 range
+int BGRed = 17;//19; // Background color in 0-255 range, 17 for Windows 8 Charms bar
+int BGGreen = 17;//14; // Background color in 0-255 range, 17 for Windows 8 Charms bar
+int BGBlue = 17;//18; // Background color in 0-255 range, 17 for Windows 8 Charms bar
+int FRed = 255; // Font color in 0-255 range
+int FGreen = 255; // Font color in 0-255 range
+int FBlue = 255; // Font color in 0-255 range
+char dispcmdl1c1[MAX_BUF_LEN] = "";//"::";// Hardcoded disposition for date and time if "::"
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
 #pragma endregion
-char dispcmdl1c1[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm'\" > temp.txt";//"";// Command to output
-char dispcmdl2c1[MAX_BUF_LEN] = "";
-char dispcmdl1c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'dddd'\" > temp.txt";
-char dispcmdl2c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'MMM dd'\" > temp.txt";
+//char dispcmdl1c1[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm'\" > temp.txt";//"";// Command to output
+//char dispcmdl2c1[MAX_BUF_LEN] = "";
+//char dispcmdl1c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'dddd'\" > temp.txt";
+//char dispcmdl2c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'MMM dd'\" > temp.txt";
 
 #pragma region Global variables
 int screenWidth = 0, screenHeight = 0, x = 0, y = 0, wx = 0, wy = 0;
@@ -322,49 +326,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
 #pragma region Text
-			if (dispcmdl1c1[0] != '\0') 
-			{
-				// Set the background color for the text
-				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
-				SetTextColor(hdc, RGB(0, 255, 0));
+			//if (dispcmdl1c1[0] != '\0') 
+			if ((dispcmdl1c1[0] == ':')&&(dispcmdl1c1[1] == ':')) 
+			{				
+				//char text[MAX_BUF_LEN];
+				//GetCommandOutput(dispcmdl1c1, (char*)text);
 
-				char text[MAX_BUF_LEN];
-				// Get the command output
-				GetCommandOutput(dispcmdl1c1, (char*)text);
-				TextOut(hdc, 0, 0, text, _tcslen(text));
-			}
-			if (dispcmdl1c2[0] != '\0') 
-			{
-				// Set the background color for the text
-				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
-				SetTextColor(hdc, RGB(0, 255, 0));
+				SYSTEMTIME st;
+				TCHAR szTime[9];
+				TCHAR dayOfWeek[80];
+				TCHAR szDate[9];
 
-				char text[MAX_BUF_LEN];
-				// Get the command output
-				GetCommandOutput(dispcmdl1c2, (char*)text);
-				TextOut(hdc, bitmap.bmWidth/2, 0, text, _tcslen(text));
-			}
-			if (dispcmdl2c1[0] != '\0') 
-			{
-				// Set the background color for the text
-				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
-				SetTextColor(hdc, RGB(0, 255, 0));
+				// Get the current local time
+				GetLocalTime(&st);
+				GetTimeFormat(LOCALE_USER_DEFAULT, 0, &st, _T("HH':'mm"), szTime, 9);
+				for (int i = 0; i < 7; ++i)
+				{
+					// Get the localized name of the day of the week
+					GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDAYNAME1 + i, dayOfWeek, 80);
+				}	
+				GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, _T("dd MMM"), szDate, 9);
 
-				char text[MAX_BUF_LEN];
-				// Get the command output
-				GetCommandOutput(dispcmdl2c2, (char*)text);
-				TextOut(hdc, 0, bitmap.bmHeight/2, text, _tcslen(text));
-			}
-			if (dispcmdl2c2[0] != '\0') 
-			{
-				// Set the background color for the text
-				SetBkColor(hdc, RGB(0, 0, 255)); // Change the RGB values to your desired color
-				SetTextColor(hdc, RGB(0, 255, 0));
-
-				char text[MAX_BUF_LEN];
-				// Get the command output
-				GetCommandOutput(dispcmdl2c2, (char*)text);
-				TextOut(hdc, bitmap.bmWidth/2, bitmap.bmHeight/2, text, _tcslen(text));
+				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
+				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
+				HFONT hFont = CreateFont(120, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				if (hFont)
+				{
+					SelectObject(hdc, hFont);
+					TextOut(hdc, 80, 10, szTime, (int)_tcslen(szTime));
+					DeleteObject(hFont);
+				}
+				hFont = CreateFont(40, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				if (hFont)
+				{
+					SelectObject(hdc, hFont);
+					TextOut(hdc, 315, 35, dayOfWeek, (int)_tcslen(dayOfWeek));
+					TextOut(hdc, 315, 70, szDate, (int)_tcslen(szDate));
+					DeleteObject(hFont);
+				}
 			}
 #pragma endregion
 			// Cleanup
@@ -535,6 +534,14 @@ void ParseParameters()
             BGGreen = std::stoi(arg.substr(3+strlen("BGGreen")));
         else if (arg.find("--BGBlue=") == 0)
             BGBlue = std::stoi(arg.substr(3+strlen("BGBlue")));
+        else if (arg.find("--FRed=") == 0)
+            BGRed = std::stoi(arg.substr(3+strlen("FRed")));
+        else if (arg.find("--FGreen=") == 0)
+            BGGreen = std::stoi(arg.substr(3+strlen("FGreen")));
+        else if (arg.find("--FBlue=") == 0)
+            BGBlue = std::stoi(arg.substr(3+strlen("FBlue")));
+        else if (arg.find("--dispcmdl1c1=") == 0)
+            strncpy_s(dispcmdl1c1, arg.substr(3+strlen("dispcmdl1c1")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)
