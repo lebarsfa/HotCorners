@@ -497,15 +497,15 @@ void ParseParameters()
         else if (arg.find("--ldclick=") == 0)
             strncpy_s(ldclick, arg.substr(3+strlen("ldclick")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--rdclick=") == 0)
-            strncpy_s(rclick, arg.substr(3+strlen("rdclick")).c_str(), MAX_BUF_LEN);
+            strncpy_s(rdclick, arg.substr(3+strlen("rdclick")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--blCmdOrSE=") == 0)
             blCmdOrSE = std::stoi(arg.substr(3+strlen("blCmdOrSE")));
         else if (arg.find("--brCmdOrSE=") == 0)
             brCmdOrSE = std::stoi(arg.substr(3+strlen("brCmdOrSE")));
         else if (arg.find("--bldCmdOrSE=") == 0)
-            blCmdOrSE = std::stoi(arg.substr(3+strlen("bldCmdOrSE")));
+            bldCmdOrSE = std::stoi(arg.substr(3+strlen("bldCmdOrSE")));
         else if (arg.find("--brdCmdOrSE=") == 0)
-            brCmdOrSE = std::stoi(arg.substr(3+strlen("brdCmdOrSE")));
+            brdCmdOrSE = std::stoi(arg.substr(3+strlen("brdCmdOrSE")));
         else if (arg.find("--help=") == 0)
             strncpy_s(help, arg.substr(3+strlen("help")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--image=") == 0)
@@ -515,9 +515,9 @@ void ParseParameters()
         else if (arg.find("--imofsy=") == 0)
             imofsy = std::stoi(arg.substr(3+strlen("imofsy")));
         else if (arg.find("--HCofsx=") == 0)
-            imofsx = std::stoi(arg.substr(3+strlen("HCofsx")));
+            HCofsx = std::stoi(arg.substr(3+strlen("HCofsx")));
         else if (arg.find("--HCofsy=") == 0)
-            imofsy = std::stoi(arg.substr(3+strlen("HCofsy")));
+            HCofsy = std::stoi(arg.substr(3+strlen("HCofsy")));
         else if (arg.find("--xtol=") == 0)
             xtol = std::stoi(arg.substr(3+strlen("xtol")));
         else if (arg.find("--ytol=") == 0)
@@ -535,11 +535,11 @@ void ParseParameters()
         else if (arg.find("--BGBlue=") == 0)
             BGBlue = std::stoi(arg.substr(3+strlen("BGBlue")));
         else if (arg.find("--FRed=") == 0)
-            BGRed = std::stoi(arg.substr(3+strlen("FRed")));
+            FRed = std::stoi(arg.substr(3+strlen("FRed")));
         else if (arg.find("--FGreen=") == 0)
-            BGGreen = std::stoi(arg.substr(3+strlen("FGreen")));
+            FGreen = std::stoi(arg.substr(3+strlen("FGreen")));
         else if (arg.find("--FBlue=") == 0)
-            BGBlue = std::stoi(arg.substr(3+strlen("FBlue")));
+            FBlue = std::stoi(arg.substr(3+strlen("FBlue")));
         else if (arg.find("--dispcmdl1c1=") == 0)
             strncpy_s(dispcmdl1c1, arg.substr(3+strlen("dispcmdl1c1")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--windowStyle=") == 0)
