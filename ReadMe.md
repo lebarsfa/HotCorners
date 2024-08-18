@@ -36,13 +36,19 @@ would create a Charms button on the Charms bar to generate WIN key press ("::0" 
 
 would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmdl1c1="::"
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::"
 
-would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::" is a hardcoded value).
+would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::" is a hardcoded value, otherwise command to output if not empty).
+
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-448 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt"
+
+would create a Charms button associated to the Charms bar to show the date using the output of a PowerShell command.
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --blCmdOrSE=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrSE=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --imofsy=-528
 
-would create a Charms button on the Charms bar with some custom actions. Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
+would create a Charms button on the Charms bar with some custom actions. 
+
+Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
 For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
 

@@ -45,15 +45,14 @@ int BGBlue = 17;//18; // Background color in 0-255 range, 17 for Windows 8 Charm
 int FRed = 255; // Font color in 0-255 range
 int FGreen = 255; // Font color in 0-255 range
 int FBlue = 255; // Font color in 0-255 range
-char dispcmdl1c1[MAX_BUF_LEN] = "";//"::";// Hardcoded disposition for date and time if "::"
+int FSize = 120; // Font size
+int textx = 80; // Text position
+int texty = 10; // Text position
+char dispcmd[MAX_BUF_LEN] = "";//"::";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::", otherwise command to output if not empty
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
 #pragma endregion
-//char dispcmdl1c1[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm'\" > temp.txt";//"";// Command to output
-//char dispcmdl2c1[MAX_BUF_LEN] = "";
-//char dispcmdl1c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'dddd'\" > temp.txt";
-//char dispcmdl2c2[MAX_BUF_LEN] = "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'MMM dd'\" > temp.txt";
 
 #pragma region Global variables
 int screenWidth = 0, screenHeight = 0, x = 0, y = 0, wx = 0, wy = 0;
@@ -325,13 +324,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
-#pragma region Text
-			//if (dispcmdl1c1[0] != '\0') 
-			if ((dispcmdl1c1[0] == ':')&&(dispcmdl1c1[1] == ':')) 
+#pragma region Text			
+			if ((dispcmd[0] == ':')&&(dispcmd[1] == ':')) 
 			{				
-				//char text[MAX_BUF_LEN];
-				//GetCommandOutput(dispcmdl1c1, (char*)text);
-
 				SYSTEMTIME st;
 				TCHAR szTime[9];
 				TCHAR dayOfWeek[80];
@@ -349,11 +344,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
-				HFONT hFont = CreateFont(120, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOut(hdc, 80, 10, szTime, (int)_tcslen(szTime));
+					TextOut(hdc, textx, texty, szTime, (int)_tcslen(szTime));
 					DeleteObject(hFont);
 				}
 				hFont = CreateFont(40, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
@@ -362,6 +357,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					SelectObject(hdc, hFont);
 					TextOut(hdc, 315, 35, dayOfWeek, (int)_tcslen(dayOfWeek));
 					TextOut(hdc, 315, 70, szDate, (int)_tcslen(szDate));
+					DeleteObject(hFont);
+				}
+			}
+			else if (dispcmd[0] != '\0')
+			{
+				char text[MAX_BUF_LEN];
+				GetCommandOutput(dispcmd, (char*)text);
+				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
+				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
+				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				if (hFont)
+				{
+					SelectObject(hdc, hFont);
+					TextOut(hdc, textx, texty, text, (int)_tcslen(text));
 					DeleteObject(hFont);
 				}
 			}
@@ -540,8 +549,14 @@ void ParseParameters()
             FGreen = std::stoi(arg.substr(3+strlen("FGreen")));
         else if (arg.find("--FBlue=") == 0)
             FBlue = std::stoi(arg.substr(3+strlen("FBlue")));
-        else if (arg.find("--dispcmdl1c1=") == 0)
-            strncpy_s(dispcmdl1c1, arg.substr(3+strlen("dispcmdl1c1")).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--FSize=") == 0)
+            FSize = std::stoi(arg.substr(3+strlen("FSize")));
+        else if (arg.find("--textx=") == 0)
+            textx = std::stoi(arg.substr(3+strlen("textx")));
+        else if (arg.find("--texty=") == 0)
+            texty = std::stoi(arg.substr(3+strlen("texty")));
+        else if (arg.find("--dispcmd=") == 0)
+            strncpy_s(dispcmd, arg.substr(3+strlen("dispcmd")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)
