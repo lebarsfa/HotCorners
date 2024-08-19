@@ -523,7 +523,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			POINT pt;
 			GetCursorPos(&pt);
-			if ((CBType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= wx && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= x)||(CBType == 1 && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= wy && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= y))
+			if ((CBType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= wx && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= x)||
+				(CBType == 1 && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= wy && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= y))
 			{
 				EnumWindows(EnumWindowsHideProc, 0);
 			}
