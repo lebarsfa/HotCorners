@@ -45,10 +45,11 @@ int BGBlue = 17;//18; // Background color in 0-255 range, 17 for Windows 8 Charm
 int FRed = 255; // Font color in 0-255 range
 int FGreen = 255; // Font color in 0-255 range
 int FBlue = 255; // Font color in 0-255 range
-int FSize = 120; // Font size
-int textx = 80; // Text position
-int texty = 10; // Text position
-char dispcmd[MAX_BUF_LEN] = "";//"::";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::", otherwise command to output if not empty
+int FSize = 30; // Font size
+char FType[MAX_BUF_LEN] = "Segoe UI Semilight";
+int textx = 5; // Text position
+int texty = 5; // Text position
+char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int timerPeriod = 100; // In milliseconds
@@ -325,16 +326,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
 #pragma region Text			
-			if ((dispcmd[0] == ':')&&(dispcmd[1] == ':')) 
-			{				
+			if (dispcmd != NULL && dispcmd[0] == ':' && dispcmd[1] == ':' && dispcmd[2] == '0' && dispcmd[3] == '\0')
+			{
+				SYSTEM_POWER_STATUS sps;
+				int batlevel = 0;
+				TCHAR szBatLevel[9];
 				SYSTEMTIME st;
 				TCHAR szTime[9];
 				TCHAR dayOfWeek[80];
 				TCHAR szDate[9];
 
-				// Get the current local time
+				if (GetSystemPowerStatus(&sps)) batlevel = static_cast<int>(sps.BatteryLifePercent); else batlevel = -1;
+				sprintf_s(szBatLevel, 9, "%d%%", batlevel);
 				GetLocalTime(&st);
 				GetTimeFormat(LOCALE_USER_DEFAULT, 0, &st, _T("HH':'mm"), szTime, 9);
+				//sprintf_s(szTime, 9, "22:33");
+				//sprintf_s(szTime, 9, "1:11");
 				for (int i = 0; i < 7; ++i)
 				{
 					// Get the localized name of the day of the week
@@ -344,19 +351,40 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
-				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				HFONT hFont;
+				hFont = CreateFont(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOut(hdc, textx, texty, szTime, (int)_tcslen(szTime));
+					if ((batlevel >= 0)&&(batlevel <= 100))
+					{
+						TextOut(hdc, 25, 30, szBatLevel, (int)_tcslen(szBatLevel));
+					}
+					else
+					{
+						//SetBkColor(hdc, RGB(255, 0, 0));
+						//SetTextColor(hdc, RGB(255, 0, 0));
+						// Covers battery icon
+						TextOut(hdc, 25, 30, "      ", (int)_tcslen("      "));
+						TextOut(hdc, 25, 65, "      ", (int)_tcslen("      "));
+					}
 					DeleteObject(hFont);
 				}
-				hFont = CreateFont(40, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				//SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
+				//SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
+				hFont = CreateFont(110, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOut(hdc, 315, 35, dayOfWeek, (int)_tcslen(dayOfWeek));
-					TextOut(hdc, 315, 70, szDate, (int)_tcslen(szDate));
+					TextOut(hdc, 100, 10, szTime, (int)_tcslen(szTime));
+					DeleteObject(hFont);
+				}
+				hFont = CreateFont(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
+				if (hFont)
+				{
+					SelectObject(hdc, hFont);
+					TextOut(hdc, 318, 25, dayOfWeek, (int)_tcslen(dayOfWeek));
+					TextOut(hdc, 318, 63, szDate, (int)_tcslen(szDate));
 					DeleteObject(hFont);
 				}
 			}
@@ -366,7 +394,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				GetCommandOutput(dispcmd, (char*)text);
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
-				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Segoe UI"));
+				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
@@ -551,6 +579,8 @@ void ParseParameters()
             FBlue = std::stoi(arg.substr(3+strlen("FBlue")));
         else if (arg.find("--FSize=") == 0)
             FSize = std::stoi(arg.substr(3+strlen("FSize")));
+        else if (arg.find("--FType=") == 0)
+            strncpy_s(FType, arg.substr(3+strlen("FType")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--textx=") == 0)
             textx = std::stoi(arg.substr(3+strlen("textx")));
         else if (arg.find("--texty=") == 0)

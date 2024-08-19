@@ -14,7 +14,7 @@ Touch screens are not yet supported.
 ## Installation
 
 Download: see https://github.com/lebarsfa/HotCorners/releases.
-Extract and copy the folder to `C:\Program Files\`.
+Extract and copy the folder to `C:\Program Files\`. Make sure the full path to the executable looks like `C:\Program Files\HotCorners\HotCorners.exe`.
 Move the provided shortcuts to `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
 
 The default parameters assume a screen of 1920x1080 resolution.
@@ -36,9 +36,9 @@ would create a Charms button on the Charms bar to generate WIN key press ("::0" 
 
 would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::"
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
 
-would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::" is a hardcoded value, otherwise command to output if not empty).
+would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::0" is a hardcoded value, otherwise command to output if not empty).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-448 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt"
 
@@ -52,7 +52,7 @@ Shortcut `Target` property might not directly allow very long commands, so a wor
 
 For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
 
-See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp for more information about the possible parameters.
+See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp and default shortcuts for more information about the possible parameters.
 
 ## Rationale
 
