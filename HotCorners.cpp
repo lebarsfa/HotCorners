@@ -10,7 +10,8 @@
 
 #define MAX_BUF_LEN 1024
 
-#define IDT_TIMER1 1
+#define IDT_TIMER_HC 1
+#define IDT_TIMER_IM 2
 #pragma endregion 
 
 //
@@ -52,7 +53,8 @@ int texty = 5; // Text position
 char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
-int timerPeriod = 100; // In milliseconds
+int tmPeriod = 100; // In milliseconds
+int imPeriod = 1000; // In milliseconds
 #pragma endregion
 
 #pragma region Global variables
@@ -64,6 +66,35 @@ char HOT_CORNERS_CHARMS_BAR_CLASS_NAME[] = "Hot Corners Charms Bar Class";
 char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
 WCHAR szwFType[MAX_BUF_LEN];
 #pragma endregion
+
+int ReloadImage()
+{
+	if (hBitmap != NULL)
+	{
+		DeleteObject(hBitmap);
+		hBitmap = NULL;
+	}
+
+	if (image != NULL && image[0] != '\0')
+	{
+		hBitmap = (HBITMAP)LoadImage(NULL, image, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+		if (hBitmap == NULL)
+		{
+			// Try again after a short delay
+			Sleep(100);
+			hBitmap = (HBITMAP)LoadImage(NULL, image, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+			if (hBitmap == NULL)
+			{
+				return EXIT_INVALID_PARAMETER;
+			}
+		}
+
+		// Get the bitmap's dimensions
+		GetObject(hBitmap, sizeof(bitmap), &bitmap);
+	}
+
+	return EXIT_SUCCESS;
+}
 
 void UpdateWindowPosition() 
 {
@@ -429,30 +460,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER1);
+		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(lclick, blCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
+		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDOWN:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER1);
+		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(rclick, brCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
+		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_LBUTTONDBLCLK:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER1);
+		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(ldclick, bldCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
+		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDBLCLK:
 		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER1);
+		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(rdclick, brdCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
+		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -488,7 +519,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (wParam)
 		{
-		case IDT_TIMER1:
+		case IDT_TIMER_HC:
 			// Screen dimensions may have changed
 			UpdateWindowPosition();
 			MoveWindow(hwnd, x+imofsx, y+imofsy, wx, wy, TRUE);
@@ -508,11 +539,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 			}
 			break;
+		case IDT_TIMER_IM:
+			if (IsWindowVisible(hwnd))
+			{
+				ReloadImage();
+				InvalidateRect(hwnd, NULL, TRUE);
+			}
+			break;
 		}
 		break;
 	}
 	case WM_DESTROY:
-		KillTimer(hwnd, IDT_TIMER1);
+		KillTimer(hwnd, IDT_TIMER_HC);
+		if (imPeriod > 0) KillTimer(hwnd, IDT_TIMER_IM);
 		PostQuitMessage(0);
 		break;
 	default:
@@ -593,9 +632,11 @@ void ParseParameters()
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)
-            timerPeriod = std::stoi(arg.substr(3+strlen("keyReleaseDelay")));
-        else if (arg.find("--timerPeriod=") == 0)
-            timerPeriod = std::stoi(arg.substr(3+strlen("timerPeriod")));
+            keyReleaseDelay = std::stoi(arg.substr(3+strlen("keyReleaseDelay")));
+        else if (arg.find("--tmPeriod=") == 0)
+            tmPeriod = std::stoi(arg.substr(3+strlen("tmPeriod")));
+        else if (arg.find("--imPeriod=") == 0)
+            imPeriod = std::stoi(arg.substr(3+strlen("imPeriod")));
     }
 }
 
@@ -621,17 +662,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	szwFType[szwFTypeLen] = L'\0';
 #pragma endregion
 
-	if (image != NULL && image[0] != '\0')
-	{	
-		// Load the bitmap image
-		hBitmap = (HBITMAP)LoadImage(NULL, image, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		if (hBitmap == NULL)
-		{
-			return EXIT_INVALID_PARAMETER;
-		}
-
-		// Get the bitmap's dimensions
-		GetObject(hBitmap, sizeof(bitmap), &bitmap);
+	if (ReloadImage() != EXIT_SUCCESS)
+	{
+		return EXIT_INVALID_PARAMETER;
 	}
 
 	char CLASS_NAME[80];
@@ -686,7 +719,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	}
 
-	SetTimer(hwnd, IDT_TIMER1, (UINT)timerPeriod, (TIMERPROC)NULL);
+	SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+	if (imPeriod > 0) SetTimer(hwnd, IDT_TIMER_IM, (UINT)imPeriod, (TIMERPROC)NULL);
 	
 	MSG msg = { };
 	while (GetMessage(&msg, NULL, 0, 0))
@@ -695,11 +729,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DispatchMessage(&msg);
 	}
 
-	//if(hBitmap != NULL)
-	//{
-	//    DeleteObject(hBitmap);
-	//    hBitmap = NULL;
-	//}
+	if (hBitmap != NULL)
+	{
+	    DeleteObject(hBitmap);
+	    hBitmap = NULL;
+	}
 
 	//DestroyWindow(hwnd);
 

@@ -52,6 +52,8 @@ Shortcut `Target` property might not directly allow very long commands, so a wor
 
 For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
 
+Note also that the `image` parameter is reloaded regularly (depends on `imPeriod` parameter), so you can change the image file while the program is running (therefore, it could act somehow like a live tile...).
+
 See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp and default shortcuts for more information about the possible parameters.
 
 ## Rationale
