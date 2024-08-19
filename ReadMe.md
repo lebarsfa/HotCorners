@@ -28,23 +28,23 @@ Illustrative example of some possible command-line parameters:
 
 would create a Charms bar background.
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::0" --rclick= --help= --image=Start.bmp --imofsy=-300
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::0" --rclick= --help= --image=Start.bmp --immulhy=-0.25
 
 would create a Charms button on the Charms bar to generate WIN key press ("::0" is a hardcoded predefined action).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --imofsy=-414
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --imofsy=-100 --immulhy=-0.25
 
 would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
 
 would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::0" is a hardcoded value, otherwise command to output if not empty).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=BatNetDateInfo_empty.bmp --imofsx=-1379 --imofsy=-448 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt"
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-236 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt" --imPeriod=0
 
-would create a Charms button associated to the Charms bar to show the date using the output of a PowerShell command.
+would create a Charms button associated to the Charms bar to show the date using the output of a PowerShell command and without refreshing it periodically.
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --blCmdOrSE=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrSE=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --imofsy=-528
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --blCmdOrSE=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrSE=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --imofsy=-200 --immulhy=-0.25
 
 would create a Charms button on the Charms bar with some custom actions. 
 
