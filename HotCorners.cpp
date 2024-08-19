@@ -389,8 +389,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				TCHAR szBatLevel[9];
 				SYSTEMTIME st;
 				WCHAR szTime[9];
-				//WCHAR firstDay[3];
-				WCHAR dayOfWeek[80];
+				WCHAR szDayOfWeek[80];
 				WCHAR szDate[9];
 
 				if (GetSystemPowerStatus(&sps)) batlevel = static_cast<int>(sps.BatteryLifePercent); else batlevel = -1;
@@ -398,10 +397,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				GetLocalTime(&st);
 				GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm", szTime, 9);
-				//GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_IFIRSTDAYOFWEEK, firstDay, 3);
-				int iFirstDay = 1;// _wtoi(firstDay); // Not sure how to correctly get the first day of the week...
-				int iDayOfWeek = (st.wDayOfWeek - iFirstDay + 7) % 7;
-				GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SDAYNAME1 + iDayOfWeek, dayOfWeek, 80);
+				GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"ddd", szDayOfWeek, 80);
 				GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"dd MMM", szDate, 9);
 
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
@@ -438,8 +434,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOutW(hdc, 318, 25, dayOfWeek, (int)wcslen(dayOfWeek));
-					TextOutW(hdc, 318, 63, szDate, (int)wcslen(szDate));
+					TextOutW(hdc, 310, 20, szDayOfWeek, (int)wcslen(szDayOfWeek));
+					TextOutW(hdc, 310, 65, szDate, (int)wcslen(szDate));
 					DeleteObject(hFont);
 				}
 			}
