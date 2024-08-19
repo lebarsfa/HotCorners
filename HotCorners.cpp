@@ -55,6 +55,7 @@ char FType[MAX_BUF_LEN] = "Segoe UI Semilight";
 int textx = 5; // Text position
 int texty = 5; // Text position
 char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
+int pwdelay = 5; // Delay in seconds before shutdown/restart actions "::3" and "::4"
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int tmPeriod = 100; // In milliseconds
@@ -147,6 +148,91 @@ void UpdateWindowPosition()
 	}
 }
 
+void GetCommandOutput(char* cmd, TCHAR* text)
+{
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// Start the child process with no window
+	if (!CreateProcess(NULL,   // No module name (use command line)
+		(LPSTR)cmd,    // Command line
+		NULL,                  // Process handle not inheritable
+		NULL,                  // Thread handle not inheritable
+		FALSE,                 // Set handle inheritance to FALSE
+		CREATE_NO_WINDOW,      // No console window
+		NULL,                  // Use parent's environment block
+		NULL,                  // Use parent's starting directory 
+		&si,                   // Pointer to STARTUPINFO structure
+		&pi)                   // Pointer to PROCESS_INFORMATION structure
+		) {
+		return;
+	}
+
+	// Wait until child process exits
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Close process and thread handles
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	// Read the output from the temp file
+	std::wifstream file("temp.txt");
+	file.imbue(std::locale(file.getloc(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
+
+	std::wstring result;
+	std::wstring line;
+
+	while (std::getline(file, line)) {
+		result += line;
+		result.push_back('\n');
+	}
+
+	//lstrcpynW(text, result.c_str(), MAX_BUF_LEN);
+
+	// Convert std::wstring to std::string
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	std::string narrow_string = converter.to_bytes(result);
+
+	// Convert std::string to char*
+	strcpy_s(text, MAX_BUF_LEN, narrow_string.c_str());
+}
+
+BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+    char class_name[80];
+    GetClassName(hwnd, class_name, sizeof(class_name));
+
+    // If the class name matches, hide the window
+    if ((strcmp(class_name, HOT_CORNERS_CHARMS_BAR_CLASS_NAME) == 0)||
+		(strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0))
+    {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+
+    return TRUE; // Continue enumeration
+}
+
+BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+    char class_name[80];
+    GetClassName(hwnd, class_name, sizeof(class_name));
+
+    // If the class name matches, set the window to be always on top
+    if (strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0)
+    {
+		ShowWindow(hwnd, SW_SHOW);
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
+
+    return TRUE; // Continue enumeration
+}
+
 void ClickAction(char* cmd, int bCmdOrSE)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
@@ -164,6 +250,23 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
 		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '2' && cmd[3] == '\0')
+	{
+		EnumWindows(EnumWindowsHideProc, 0);
+		ShellExecute(NULL, "open", "cmd.exe", "/c shutdown /a", NULL, SW_HIDE);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '3' && cmd[3] == '\0')
+	{
+		char cmdparams[MAX_BUF_LEN+3] = "";
+		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /s /t %d", pwdelay);
+		ShellExecute(NULL, "open", "cmd.exe", cmdparams, NULL, SW_HIDE);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '4' && cmd[3] == '\0')
+	{
+		char cmdparams[MAX_BUF_LEN+3] = "";
+		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /r /t %d", pwdelay);
+		ShellExecute(NULL, "open", "cmd.exe", cmdparams, NULL, SW_HIDE);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == '\0')
 	{
@@ -257,91 +360,6 @@ void ClickAction(char* cmd, int bCmdOrSE)
 			ShellExecute(NULL, "open", cmd, NULL, NULL, SW_SHOW);
 		}
 	}
-}
-
-void GetCommandOutput(char* cmd, TCHAR* text)
-{
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory(&pi, sizeof(pi));
-
-	// Start the child process with no window
-	if (!CreateProcess(NULL,   // No module name (use command line)
-		(LPSTR)cmd,    // Command line
-		NULL,                  // Process handle not inheritable
-		NULL,                  // Thread handle not inheritable
-		FALSE,                 // Set handle inheritance to FALSE
-		CREATE_NO_WINDOW,      // No console window
-		NULL,                  // Use parent's environment block
-		NULL,                  // Use parent's starting directory 
-		&si,                   // Pointer to STARTUPINFO structure
-		&pi)                   // Pointer to PROCESS_INFORMATION structure
-		) {
-		return;
-	}
-
-	// Wait until child process exits
-	WaitForSingleObject(pi.hProcess, INFINITE);
-
-	// Close process and thread handles
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
-
-	// Read the output from the temp file
-	std::wifstream file("temp.txt");
-	file.imbue(std::locale(file.getloc(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
-
-	std::wstring result;
-	std::wstring line;
-
-	while (std::getline(file, line)) {
-		result += line;
-		result.push_back('\n');
-	}
-
-	//lstrcpynW(text, result.c_str(), MAX_BUF_LEN);
-
-	// Convert std::wstring to std::string
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-	std::string narrow_string = converter.to_bytes(result);
-
-	// Convert std::string to char*
-	strcpy_s(text, MAX_BUF_LEN, narrow_string.c_str());
-}
-
-BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-    char class_name[80];
-    GetClassName(hwnd, class_name, sizeof(class_name));
-
-    // If the class name matches, hide the window
-    if ((strcmp(class_name, HOT_CORNERS_CHARMS_BAR_CLASS_NAME) == 0)||
-		(strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0))
-    {
-        ShowWindow(hwnd, SW_HIDE);
-    }
-
-    return TRUE; // Continue enumeration
-}
-
-BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-    char class_name[80];
-    GetClassName(hwnd, class_name, sizeof(class_name));
-
-    // If the class name matches, set the window to be always on top
-    if (strcmp(class_name, HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME) == 0)
-    {
-		ShowWindow(hwnd, SW_SHOW);
-		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    }
-
-    return TRUE; // Continue enumeration
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -507,7 +525,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		default:
 		{
-			// Get the current mouse position
 			POINT pt;
 			GetCursorPos(&pt);
 			if ((CBType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= wx && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= x)||(CBType == 1 && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= wy && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= y))
@@ -641,6 +658,8 @@ void ParseParameters()
             texty = std::stoi(arg.substr(3+strlen("texty")));
         else if (arg.find("--dispcmd=") == 0)
             strncpy_s(dispcmd, arg.substr(3+strlen("dispcmd")).c_str(), MAX_BUF_LEN);
+        else if (arg.find("--pwdelay=") == 0)
+            pwdelay = std::stoi(arg.substr(3+strlen("pwdelay")));
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)

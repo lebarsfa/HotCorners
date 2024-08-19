@@ -4,7 +4,7 @@ Display customizable buttons or bars when moving the mouse to the corners of the
 
 <p float="left">
   <img src="./Screenshots/Button.png" width="400" alt="Button" />
-  <img src="./Screenshots/CharmsBarWith2CharmsButtons.png" width="400" alt="Charms bar with 2 Charms buttons" />
+  <img src="./Screenshots/CharmsBar.png" width="400" alt="Charms bar" />
 </p>
 
 By default, the button is displayed in the top-left corner of the screen and a left-click will show `Start menu` while a right-click will act as `Show desktop` function.
