@@ -62,6 +62,7 @@ BITMAP bitmap;
 char HOT_CORNERS_BUTTON_CLASS_NAME[] = "Hot Corners Button Class";
 char HOT_CORNERS_CHARMS_BAR_CLASS_NAME[] = "Hot Corners Charms Bar Class";
 char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
+WCHAR szwFType[MAX_BUF_LEN];
 #pragma endregion
 
 void UpdateWindowPosition() 
@@ -223,7 +224,7 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	}
 }
 
-void GetCommandOutput(char* cmd, LPTSTR text)
+void GetCommandOutput(char* cmd, TCHAR* text)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -265,6 +266,8 @@ void GetCommandOutput(char* cmd, LPTSTR text)
 		result += line;
 		result.push_back('\n');
 	}
+
+	//lstrcpynW(text, result.c_str(), MAX_BUF_LEN);
 
 	// Convert std::wstring to std::string
 	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
@@ -332,27 +335,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				int batlevel = 0;
 				TCHAR szBatLevel[9];
 				SYSTEMTIME st;
-				TCHAR szTime[9];
-				TCHAR dayOfWeek[80];
-				TCHAR szDate[9];
+				WCHAR szTime[9];
+				//WCHAR firstDay[3];
+				WCHAR dayOfWeek[80];
+				WCHAR szDate[9];
 
 				if (GetSystemPowerStatus(&sps)) batlevel = static_cast<int>(sps.BatteryLifePercent); else batlevel = -1;
 				sprintf_s(szBatLevel, 9, "%d%%", batlevel);
+
 				GetLocalTime(&st);
-				GetTimeFormat(LOCALE_USER_DEFAULT, 0, &st, _T("HH':'mm"), szTime, 9);
-				//sprintf_s(szTime, 9, "22:33");
-				//sprintf_s(szTime, 9, "1:11");
-				for (int i = 0; i < 7; ++i)
-				{
-					// Get the localized name of the day of the week
-					GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDAYNAME1 + i, dayOfWeek, 80);
-				}	
-				GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, _T("dd MMM"), szDate, 9);
+				GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm", szTime, 9);
+				//GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_IFIRSTDAYOFWEEK, firstDay, 3);
+				int iFirstDay = 1;// _wtoi(firstDay); // Not sure how to correctly get the first day of the week...
+				int iDayOfWeek = (st.wDayOfWeek - iFirstDay + 7) % 7;
+				GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SDAYNAME1 + iDayOfWeek, dayOfWeek, 80);
+				GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"dd MMM", szDate, 9);
 
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
 				HFONT hFont;
-				hFont = CreateFont(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
+				hFont = CreateFont(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T(FType));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
@@ -365,36 +367,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						//SetBkColor(hdc, RGB(255, 0, 0));
 						//SetTextColor(hdc, RGB(255, 0, 0));
 						// Covers battery icon
-						TextOut(hdc, 25, 30, "      ", (int)_tcslen("      "));
-						TextOut(hdc, 25, 65, "      ", (int)_tcslen("      "));
+						TextOut(hdc, 25, 30, _T("      "), (int)_tcslen("      "));
+						TextOut(hdc, 25, 65, _T("      "), (int)_tcslen("      "));
 					}
 					DeleteObject(hFont);
 				}
 				//SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				//SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
-				hFont = CreateFont(110, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
+				hFont = CreateFontW(110, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, szwFType);
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOut(hdc, 100, 10, szTime, (int)_tcslen(szTime));
+					TextOutW(hdc, 100, 10, szTime, (int)wcslen(szTime));
 					DeleteObject(hFont);
 				}
-				hFont = CreateFont(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
+				hFont = CreateFontW(45, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, szwFType);
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOut(hdc, 318, 25, dayOfWeek, (int)_tcslen(dayOfWeek));
-					TextOut(hdc, 318, 63, szDate, (int)_tcslen(szDate));
+					TextOutW(hdc, 318, 25, dayOfWeek, (int)wcslen(dayOfWeek));
+					TextOutW(hdc, 318, 63, szDate, (int)wcslen(szDate));
 					DeleteObject(hFont);
 				}
 			}
 			else if (dispcmd[0] != '\0')
 			{
-				char text[MAX_BUF_LEN];
-				GetCommandOutput(dispcmd, (char*)text);
+				TCHAR text[MAX_BUF_LEN];
+				text[0] = 0;
+				GetCommandOutput(dispcmd, text);
 				SetBkColor(hdc, RGB(BGRed, BGGreen, BGBlue));
 				SetTextColor(hdc, RGB(FRed, FGreen, FBlue));
-				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT(FType));
+				HFONT hFont = CreateFont(FSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T(FType));
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
@@ -611,6 +614,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	{
 		return EXIT_INVALID_PARAMETER;
 	}
+#pragma endregion
+#pragma region Parameter processing
+	int szwFTypeLen = MultiByteToWideChar(CP_ACP, 0, FType, (int)strlen(FType), NULL, 0);
+	MultiByteToWideChar(CP_ACP, 0, FType, (int)strlen(FType), szwFType, szwFTypeLen);
+	szwFType[szwFTypeLen] = L'\0';
 #pragma endregion
 
 	if (image != NULL && image[0] != '\0')
