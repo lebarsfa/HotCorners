@@ -598,28 +598,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_LBUTTONDOWN:
-		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 0)
+		{
+			ShowWindow(hwnd, SW_SHOW);
+			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		}
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(lclick, blCmdOrSE);
 		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDOWN:
-		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 0)
+		{
+			ShowWindow(hwnd, SW_SHOW);
+			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		}
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(rclick, brCmdOrSE);
 		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_LBUTTONDBLCLK:
-		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 0)
+		{
+			ShowWindow(hwnd, SW_SHOW);
+			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		}
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(ldclick, bldCmdOrSE);
 		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 		break;
 	case WM_RBUTTONDBLCLK:
-		if (HCWType == 0) ShowWindow(hwnd, SW_HIDE);
+		if (HCWType == 0)
+		{
+			ShowWindow(hwnd, SW_SHOW);
+			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		}
 		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 		KillTimer(hwnd, IDT_TIMER_HC);
 		ClickAction(rdclick, brdCmdOrSE);
@@ -688,8 +704,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				(HCType == 2 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xotol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol)||
 				(HCType == 3 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xitol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol))
 			{
-				ShowWindow(hwnd, SW_SHOW);
-				if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+				if (!IsWindowVisible(hwnd))
+				{
+					ShowWindow(hwnd, SW_SHOW);
+					if (HCWType == 0) SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+					if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+				}
 			}
 			break;
 		case IDT_TIMER_IM:
