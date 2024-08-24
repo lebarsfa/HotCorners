@@ -39,8 +39,10 @@ int HCofsx = 0; // Position offset for the hot corner
 int HCofsy = 0; // Position offset for the hot corner
 double HCmulwx = 0; // Multiplier of the screen width to add to the hot corner position
 double HCmulhy = 0; // Multiplier of the screen height to add to the hot corner position
-int xtol = 5; // Tolerance for the mouse position to be considered in the corner
-int ytol = 5; // Tolerance for the mouse position to be considered in the corner
+int xitol = 5; // Tolerance (x inside the screen) for the mouse position to be considered in the corner
+int xotol = 0; // Tolerance (x outside the screen) for the mouse position to be considered in the corner
+int yitol = 5; // Tolerance (y inside the screen) for the mouse position to be considered in the corner
+int yotol = 0; // Tolerance (y outside the screen) for the mouse position to be considered in the corner
 int CBType = 0; // 0=Vertical, 1=Horizontal
 int CBWidth = 114; // 86 in Windows 8
 int CBHeight = 90;
@@ -642,10 +644,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Check if the mouse is in a corner of the screen
 			// On Windows 8.1, it also reacts when x==screenWidth and 0<=y<=10, to check when multiple monitors for Charms there seem to be timings and differences depending on the corner...
-			if ((HCType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xtol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xtol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= -ytol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= ytol)||
-				(HCType == 1 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xtol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xtol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= -ytol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= ytol)||
-				(HCType == 2 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xtol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xtol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-ytol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+ytol)||
-				(HCType == 3 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xtol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xtol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-ytol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+ytol))
+			if ((HCType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xotol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= -yotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= yitol)||
+				(HCType == 1 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xitol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= -yotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= yitol)||
+				(HCType == 2 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xotol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol)||
+				(HCType == 3 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xitol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol))
 			{
 				ShowWindow(hwnd, SW_SHOW);
 				if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
@@ -717,10 +719,14 @@ void ParseParameters()
             HCmulwx = std::stod(arg.substr(3+strlen("HCmulwx")));
         else if (arg.find("--HCmulhy=") == 0)
             HCmulhy = std::stod(arg.substr(3+strlen("HCmulhy")));
-        else if (arg.find("--xtol=") == 0)
-            xtol = std::stoi(arg.substr(3+strlen("xtol")));
-        else if (arg.find("--ytol=") == 0)
-            ytol = std::stoi(arg.substr(3+strlen("ytol")));
+        else if (arg.find("--xitol=") == 0)
+            xitol = std::stoi(arg.substr(3+strlen("xitol")));
+        else if (arg.find("--xotol=") == 0)
+            xotol = std::stoi(arg.substr(3+strlen("xotol")));
+        else if (arg.find("--yitol=") == 0)
+            yitol = std::stoi(arg.substr(3+strlen("yitol")));
+        else if (arg.find("--yotol=") == 0)
+            yotol = std::stoi(arg.substr(3+strlen("yotol")));
         else if (arg.find("--CBType=") == 0)
             CBType = std::stoi(arg.substr(3+strlen("CBType")));
         else if (arg.find("--CBWidth=") == 0)
