@@ -407,15 +407,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					if ((batlevel >= 0)&&(batlevel <= 100))
+					if (sps.ACLineStatus == 0)
 					{
-						TextOut(hdc, 25, 30, szBatLevel, (int)_tcslen(szBatLevel));
+						// Running on battery power
+						if ((batlevel >= 0)&&(batlevel <= 100))
+						{
+							TextOut(hdc, 25, 30, szBatLevel, (int)_tcslen(szBatLevel));
+						}
+						// Covers plug icon
+						TextOut(hdc, 27, 30, _T("  "), (int)_tcslen("  "));
+						TextOut(hdc, 27, 65, _T("  "), (int)_tcslen("  "));
+					}
+					else if (sps.ACLineStatus == 1)
+					{
+						// Plugged in
+						if ((batlevel >= 0)&&(batlevel <= 100))
+						{
+							TextOut(hdc, 25, 30, szBatLevel, (int)_tcslen(szBatLevel));
+						}
+						else
+						{
+							// Covers battery icon
+							TextOut(hdc, 48, 30, _T("  "), (int)_tcslen("  "));
+							TextOut(hdc, 48, 65, _T("  "), (int)_tcslen("  "));
+						}
 					}
 					else
 					{
-						//SetBkColor(hdc, RGB(255, 0, 0));
-						//SetTextColor(hdc, RGB(255, 0, 0));
-						// Covers battery icon
+						// Unknown power source
+						// Covers plug and battery icons
 						TextOut(hdc, 25, 30, _T("      "), (int)_tcslen("      "));
 						TextOut(hdc, 25, 65, _T("      "), (int)_tcslen("      "));
 					}
