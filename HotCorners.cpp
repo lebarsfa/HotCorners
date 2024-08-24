@@ -73,6 +73,7 @@ char HOT_CORNERS_CHARMS_BAR_CLASS_NAME[] = "Hot Corners Charms Bar Class";
 char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
 WCHAR szwFType[MAX_BUF_LEN];
 HCURSOR hCursor;
+BOOL bInCharmsBar = FALSE;
 #pragma endregion
 
 int ReloadImage()
@@ -202,6 +203,30 @@ void GetCommandOutput(char* cmd, TCHAR* text)
 
 	// Convert std::string to char*
 	strcpy_s(text, MAX_BUF_LEN, narrow_string.c_str());
+}
+
+BOOL CALLBACK EnumWindowsInCharmsBarProc(HWND hwnd, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	char class_name[80];
+	GetClassName(hwnd, class_name, sizeof(class_name));
+
+	if ((strcmp(class_name, HOT_CORNERS_CHARMS_BAR_CLASS_NAME) == 0))
+	{
+		RECT rect;
+		if (GetWindowRect(hwnd, &rect))
+		{
+			POINT pt;
+			GetCursorPos(&pt);
+			if (PtInRect(&rect, pt))
+			{
+				bInCharmsBar = TRUE;
+				return FALSE; // Abort enumeration
+			}
+		}
+	}
+
+	return TRUE; // Continue enumeration
 }
 
 BOOL CALLBACK EnumWindowsHideProc(HWND hwnd, LPARAM lParam)
@@ -616,12 +641,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case 0:
 			ShowWindow(hwnd, SW_HIDE);
 			break;
-		default:
+		case 1:
 		{
-			POINT pt;
-			GetCursorPos(&pt);
-			if ((CBType == 0 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= wx && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= x)||
-				(CBType == 1 && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= wy && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= y))
+			RECT rect;
+			if (GetWindowRect(hwnd, &rect))
+			{
+				POINT pt;
+				GetCursorPos(&pt);
+				if (!PtInRect(&rect, pt))
+				{
+					EnumWindows(EnumWindowsHideProc, 0);
+				}
+			}
+			break;
+		}
+		case 2:
+		{
+			bInCharmsBar = FALSE;
+			EnumWindows(EnumWindowsInCharmsBarProc, 0);
+			if (!bInCharmsBar)
 			{
 				EnumWindows(EnumWindowsHideProc, 0);
 			}
