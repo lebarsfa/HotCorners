@@ -72,6 +72,7 @@ char HOT_CORNERS_BUTTON_CLASS_NAME[] = "Hot Corners Button Class";
 char HOT_CORNERS_CHARMS_BAR_CLASS_NAME[] = "Hot Corners Charms Bar Class";
 char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
 WCHAR szwFType[MAX_BUF_LEN];
+HCURSOR hCursor;
 #pragma endregion
 
 int ReloadImage()
@@ -846,6 +847,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		toolInfo.lpszText = help;
 		SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	}
+
+	hCursor = LoadCursor(NULL, IDC_ARROW);
+	if (hCursor == NULL)
+	{
+		return EXIT_INVALID_PARAMETER;
+	}
+	SetCursor(hCursor);
+	ShowCursor(TRUE);
 
 	SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
 	if (imPeriod > 0) SetTimer(hwnd, IDT_TIMER_IM, (UINT)imPeriod, (TIMERPROC)NULL);
