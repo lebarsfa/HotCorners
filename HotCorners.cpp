@@ -344,6 +344,80 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
 		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == ':' && cmd[16] == '\0')
+	{
+		char key1[5] = "0x00";
+		char key2[5] = "0x00";
+		char key3[5] = "0x00";
+		char key4[5] = "0x00";
+		char key5[5] = "0x00";
+		key1[2] = cmd[2];
+		key1[3] = cmd[3];
+		key2[2] = cmd[5];
+		key2[3] = cmd[6];
+		key3[2] = cmd[8];
+		key3[3] = cmd[9];
+		key4[2] = cmd[11];
+		key4[3] = cmd[12];
+		key5[2] = cmd[14];
+		key5[3] = cmd[15];
+		int vk_code1 = std::stoi(key1, nullptr, 16);
+		int vk_code2 = std::stoi(key2, nullptr, 16);
+		int vk_code3 = std::stoi(key3, nullptr, 16);
+		int vk_code4 = std::stoi(key4, nullptr, 16);
+		int vk_code5 = std::stoi(key5, nullptr, 16);
+		keybd_event((BYTE)vk_code1, 0, 0, 0);
+		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		keybd_event((BYTE)vk_code3, 0, 0, 0);
+		keybd_event((BYTE)vk_code4, 0, 0, 0);
+		keybd_event((BYTE)vk_code5, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+	}
+	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == ':' && cmd[16] == ':' && cmd[19] == '\0')
+	{
+		char key1[5] = "0x00";
+		char key2[5] = "0x00";
+		char key3[5] = "0x00";
+		char key4[5] = "0x00";
+		char key5[5] = "0x00";
+		char key6[5] = "0x00";
+		key1[2] = cmd[2];
+		key1[3] = cmd[3];
+		key2[2] = cmd[5];
+		key2[3] = cmd[6];
+		key3[2] = cmd[8];
+		key3[3] = cmd[9];
+		key4[2] = cmd[11];
+		key4[3] = cmd[12];
+		key5[2] = cmd[14];
+		key5[3] = cmd[15];
+		key6[2] = cmd[17];
+		key6[3] = cmd[18];
+		int vk_code1 = std::stoi(key1, nullptr, 16);
+		int vk_code2 = std::stoi(key2, nullptr, 16);
+		int vk_code3 = std::stoi(key3, nullptr, 16);
+		int vk_code4 = std::stoi(key4, nullptr, 16);
+		int vk_code5 = std::stoi(key5, nullptr, 16);
+		int vk_code6 = std::stoi(key6, nullptr, 16);
+		keybd_event((BYTE)vk_code1, 0, 0, 0);
+		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		keybd_event((BYTE)vk_code3, 0, 0, 0);
+		keybd_event((BYTE)vk_code4, 0, 0, 0);
+		keybd_event((BYTE)vk_code5, 0, 0, 0);
+		keybd_event((BYTE)vk_code6, 0, 0, 0);
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		keybd_event((BYTE)vk_code6, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+	}
 	else if (cmd != NULL && cmd[0] != '\0')
 	{
 		if (bCmdOrSE)

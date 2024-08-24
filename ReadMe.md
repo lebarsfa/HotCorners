@@ -50,9 +50,13 @@ would create a Charms button on the Charms bar with some custom actions.
 
 Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
-For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
+For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC", "::FF:FE:FD:FC:FB", "::FF:FE:FD:FC:FB:FA" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
 
 Note also that the `image` parameter is reloaded regularly (depends on `imPeriod` parameter), so you can change the image file while the program is running (therefore, it could act somehow like a live tile...).
+
+To kill easily all instances of the program, you can use the following command from a "Windows PowerShell (Admin)" terminal:
+
+	taskkill /f /t /im HotCorners.exe
 
 See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp and default shortcuts for more information about the possible parameters.
 
