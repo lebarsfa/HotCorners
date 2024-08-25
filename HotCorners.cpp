@@ -58,6 +58,7 @@ int textx = 5; // Text position
 int texty = 5; // Text position
 char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
 int pwdelay = 5; // Delay in seconds before shutdown/restart actions "::3" and "::4"
+int bIgnFS = 0; // Ignore full screen apps: 0=No, 1=Yes
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
 int tmPeriod = 100; // In milliseconds
@@ -75,6 +76,53 @@ WCHAR szwFType[MAX_BUF_LEN];
 HCURSOR hCursor;
 BOOL bInCharmsBar = FALSE;
 #pragma endregion
+
+bool IsFullScreenAppRunning(HWND myWindow) 
+{
+    HWND hWnd = GetForegroundWindow();  // Get the foreground window
+
+    // Get the window class name
+    char className[256];
+    GetClassNameA(hWnd, className, sizeof(className));
+
+    // If the foreground window is the desktop or the shell, return false
+    if (strcmp(className, "Progman") == 0 || strcmp(className, "WorkerW") == 0) {
+        return false;
+    }
+
+    RECT appBounds;
+    RECT screenBounds;
+
+    // Get the dimensions of the app window
+    GetWindowRect(hWnd, &appBounds);
+
+    // Get the monitor that the app window is on
+    HMONITOR appMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+
+    // Get the monitor that my window is on
+    HMONITOR myMonitor = MonitorFromWindow(myWindow, MONITOR_DEFAULTTONEAREST);
+
+    // If the app window and my window are on different monitors, return false
+    if (appMonitor != myMonitor) {
+        return false;
+    }
+
+    // Get the dimensions of the monitor
+    MONITORINFO mi = { sizeof(mi) };
+    if (GetMonitorInfo(appMonitor, &mi)) {
+        screenBounds = mi.rcMonitor;
+    } else {
+        return false;  // Couldn't get monitor info
+    }
+
+    // Compare the dimensions of the app window with the monitor
+    if (appBounds.bottom - appBounds.top == screenBounds.bottom - screenBounds.top &&
+        appBounds.right - appBounds.left == screenBounds.right - screenBounds.left) {
+        return true;  // The app window is full screen
+    } else {
+        return false;  // The app window is not full screen
+    }
+}
 
 int ReloadImage()
 {
@@ -704,7 +752,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				(HCType == 2 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= -xotol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= xitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol)||
 				(HCType == 3 && pt.x+HCofsx+(int)(HCmulwx*screenWidth) >= screenWidth-1-xitol && pt.x+HCofsx+(int)(HCmulwx*screenWidth) <= screenWidth-1+xotol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) >= screenHeight-1-yitol && pt.y+HCofsy+(int)(HCmulhy*screenHeight) <= screenHeight-1+yotol))
 			{
-				if (!IsWindowVisible(hwnd))
+				if (!IsWindowVisible(hwnd) && (bIgnFS || !IsFullScreenAppRunning(hwnd)))
 				{
 					ShowWindow(hwnd, SW_SHOW);
 					if (HCWType == 0) SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -816,6 +864,8 @@ void ParseParameters()
             strncpy_s(dispcmd, arg.substr(3+strlen("dispcmd")).c_str(), MAX_BUF_LEN);
         else if (arg.find("--pwdelay=") == 0)
             pwdelay = std::stoi(arg.substr(3+strlen("pwdelay")));
+        else if (arg.find("--bIgnFS=") == 0)
+            bIgnFS = std::stoi(arg.substr(3+strlen("bIgnFS")));
         else if (arg.find("--windowStyle=") == 0)
             windowStyle = std::stoi(arg.substr(3+strlen("windowStyle")));
         else if (arg.find("--keyReleaseDelay=") == 0)
