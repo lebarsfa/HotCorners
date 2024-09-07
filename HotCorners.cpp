@@ -57,7 +57,10 @@ char FType[MAX_BUF_LEN] = "Segoe UI Semilight";
 int textx = 5; // Text position
 int texty = 5; // Text position
 char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
-int pwdelay = 5; // Delay in seconds before shutdown/restart actions "::3" and "::4"
+int pwsdelay = 0; // Delay in seconds for shutdown action "::3"
+int pwrdelay = 0; // Delay in seconds for restart action "::4"
+int bForcePw = 0; // Force shutdown/restart actions "::3" and "::4"
+//int pwmsg = 0; // Show message before shutdown/restart actions "::3" and "::4": 0 for no message, 1 show default message of the shutdown command
 int bIgnFS = 0; // Ignore full screen apps: 0=No, 1=Yes
 int windowStyle = WS_EX_TOOLWINDOW|WS_EX_TOPMOST;//128;//0x80=128=WS_EX_TOOLWINDOW,0x8=8=WS_EX_TOPMOST so default is 136
 int keyReleaseDelay = 0; // In milliseconds
@@ -335,13 +338,13 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '3' && cmd[3] == '\0')
 	{
 		char cmdparams[MAX_BUF_LEN+3] = "";
-		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /s /t %d", pwdelay);
+		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /s %s/t %d", bForcePw?"/f ":"", pwsdelay);
 		ShellExecute(NULL, "open", "cmd.exe", cmdparams, NULL, SW_HIDE);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '4' && cmd[3] == '\0')
 	{
 		char cmdparams[MAX_BUF_LEN+3] = "";
-		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /r /t %d", pwdelay);
+		sprintf_s(cmdparams, MAX_BUF_LEN+3, "/c shutdown /r %s/t %d", bForcePw?"/f ":"", pwrdelay);
 		ShellExecute(NULL, "open", "cmd.exe", cmdparams, NULL, SW_HIDE);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == '\0')
@@ -862,8 +865,14 @@ void ParseParameters()
             texty = std::stoi(arg.substr(3+strlen("texty")));
         else if (arg.find("--dispcmd=") == 0)
             strncpy_s(dispcmd, arg.substr(3+strlen("dispcmd")).c_str(), MAX_BUF_LEN);
-        else if (arg.find("--pwdelay=") == 0)
-            pwdelay = std::stoi(arg.substr(3+strlen("pwdelay")));
+        else if (arg.find("--pwsdelay=") == 0)
+            pwsdelay = std::stoi(arg.substr(3+strlen("pwsdelay")));
+        else if (arg.find("--pwrdelay=") == 0)
+            pwrdelay = std::stoi(arg.substr(3+strlen("pwrdelay")));
+        else if (arg.find("--bForcePw=") == 0)
+            bForcePw = std::stoi(arg.substr(3+strlen("bForcePw")));
+        //else if (arg.find("--pwmsg=") == 0)
+        //    pwmsg = std::stoi(arg.substr(3+strlen("pwmsg")));
         else if (arg.find("--bIgnFS=") == 0)
             bIgnFS = std::stoi(arg.substr(3+strlen("bIgnFS")));
         else if (arg.find("--windowStyle=") == 0)
