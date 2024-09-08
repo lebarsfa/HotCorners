@@ -10,18 +10,25 @@ $packageArgs = @{
   packageName = $env:ChocolateyPackageName
   unzipLocation = $env:ProgramFiles
   url = 'https://github.com/lebarsfa/HotCorners/releases/download/v0.1.8/HotCorners.zip'
-  checksum = '29B82B56B4FA51F54826C7585E41FA0438EC40ED1E3F6A31BDBA80468795549F'
+  checksum = '51D6F0DA75120281529F9E450E54C37DBCF81E65A818173AED7A7014D3E3F761'
   checksumType = 'sha256'
 }
 
 Install-ChocolateyZipPackage @packageArgs
 
+$programDirectory = "$env:ProgramFiles\HotCorners"
+
 # Install provided shortcuts
-$startupDirectory = "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\Startup\"
-Copy-Item -Path "$env:ProgramFiles\HotCorners\HotCorners*.lnk" -Destination $startupDirectory -Force
+$startupDirectory = "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\Startup"
+Copy-Item -Path "$programDirectory\HotCorners*.lnk" -Destination $startupDirectory -Force
 
 # Run each shortcut
 $shortcuts = Get-ChildItem -Path $startupDirectory -Filter "HotCorners*.lnk"
 foreach ($shortcut in $shortcuts) {
     Start-Process -FilePath $shortcut.FullName
 }
+
+# Create group shortcuts
+$shortcutsDirectory = "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\Hot Corners"
+Install-ChocolateyShortcut -ShortcutFilePath "$shortcutsDirectory\Hot Corners Kill All.lnk" -TargetPath "$programDirectory\HotCornersKillAll.bat" -WorkingDirectory "$programDirectory"
+Install-ChocolateyShortcut -ShortcutFilePath "$shortcutsDirectory\Hot Corners Launch All.lnk" -TargetPath "$programDirectory\HotCornersLaunchAll.bat" -WorkingDirectory "$programDirectory"

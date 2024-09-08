@@ -1,5 +1,8 @@
 ﻿$ErrorActionPreference = 'Stop' # stop on all errors
 
+# Uninstall group shortcuts
+Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\Hot Corners" -Recurse -Force -ErrorAction SilentlyContinue
+
 # Uninstall provided shortcuts
 Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\Startup\HotCorners*.lnk" -Force -ErrorAction SilentlyContinue
 
