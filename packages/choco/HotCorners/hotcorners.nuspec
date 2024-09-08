@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>hotcorners</id>
+    <version>0.1.8</version>
+    <packageSourceUrl>https://github.com/lebarsfa/HotCorners/blob/main/packages/choco/HotCorners</packageSourceUrl>
+    <owners>lebarsfa</owners>
+    <title>Hot Corners</title>
+    <authors>lebarsfa</authors>
+    <projectUrl>https://github.com/lebarsfa/HotCorners</projectUrl>
+    <licenseUrl>https://github.com/lebarsfa/HotCorners/blob/main/ReadMe.md</licenseUrl>
+	<requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/lebarsfa/HotCorners</projectSourceUrl>
+    <docsUrl>https://github.com/lebarsfa/HotCorners/blob/main/ReadMe.md</docsUrl>
+    <tags>hotcorners charms</tags>
+    <summary>Display customizable buttons or bars when moving the mouse to the corners of the screen, inspired from Windows 8 way to access the Start screen and the Charms bar</summary>
+    <description>
+Display customizable buttons or bars when moving the mouse to the corners of the screen, inspired from Windows 8 way to access the `Start screen` and the `Charms bar`.
+
+
+By default, a button is displayed in the top-left corner of the screen and a left-click will show `Start menu` while a right-click will act as `Show desktop` function.
+Another alternative is to display a `Charms bar` from the bottom-right corner.
+
+
+![Button](https://github.com/lebarsfa/HotCorners/blob/main/Screenshots/Button.png?raw=true)
+
+
+![Charms bar](https://github.com/lebarsfa/HotCorners/blob/main/Screenshots/CharmsBar.png?raw=true)
+	</description>
+  </metadata>
+</package>

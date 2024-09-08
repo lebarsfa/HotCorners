@@ -266,3 +266,4 @@ $RECYCLE.BIN/
 TODO/
 !*ReadMe.txt
 temp.txt
+!**/packages/*
