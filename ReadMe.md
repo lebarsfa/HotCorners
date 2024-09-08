@@ -13,7 +13,11 @@ Touch screens are not yet supported.
 
 ## Installation
 
-Download: see https://github.com/lebarsfa/HotCorners/releases.
+You should be able to install [it](https://community.chocolatey.org/packages/hotcorners) from [Chocolatey](https://chocolatey.org/install):
+
+	choco install -y hotcorners --version=0.1.8
+
+To download and install manually, see https://github.com/lebarsfa/HotCorners/releases.
 Extract and copy the folder to `C:\Program Files\`. Make sure the full path to the executable looks like `C:\Program Files\HotCorners\HotCorners.exe`.
 Move the provided shortcuts to `C:\Users\YOUR USER NAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`. This will make them run automatically after you restart.
 
@@ -26,27 +30,27 @@ Illustrative example of some possible command-line parameters:
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=1 --HCType=3 --lclick= --rclick= --help= --image=
 
-would create a Charms bar background.
+would create a `Charms bar` background.
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::0" --rclick= --help= --image=Start.bmp --immulhy=-0.25
 
-would create a Charms button on the Charms bar to generate WIN key press ("::0" is a hardcoded predefined action).
+would create a `Charms button` on the `Charms bar` to generate WIN key press ("::0" is a hardcoded predefined action).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --imofsy=-100 --immulhy=-0.25
 
-would create a Charms button on the Charms bar to generate WIN+D key press ("::1" is a hardcoded predefined action).
+would create a `Charms button` on the `Charms bar` to generate WIN+D key press ("::1" is a hardcoded predefined action).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
 
-would create a Charms button associated to the Charms bar to show the date like Windows 8 ("::0" is a hardcoded value, otherwise command to output if not empty).
+would create a `Charms button` associated to the `Charms bar` to show the date like Windows 8 ("::0" is a hardcoded value, otherwise command to output if not empty).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-236 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt" --imPeriod=0
 
-would create a Charms button associated to the Charms bar to show the date using the output of a PowerShell command and without refreshing it periodically.
+would create a `Charms button` associated to the `Charms bar` to show the date using the output of a PowerShell command and without refreshing it periodically.
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --blCmdOrSE=0 --lclick="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" --brCmdOrSE=1 --rclick="start \"\" cmd /c \"dir %SystemDrive% && pause\"" --help="Notepad" --image=Notepad.bmp --imofsy=-200 --immulhy=-0.25
 
-would create a Charms button on the Charms bar with some custom actions. 
+would create a `Charms button` on the `Charms bar` with some custom actions. 
 
 Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
