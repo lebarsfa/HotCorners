@@ -60,7 +60,7 @@ Note also that the `image` parameter is reloaded regularly (depends on `imPeriod
 
 To kill easily all instances of the program, you can use the following command from a "Windows PowerShell (Admin)" terminal:
 
-	taskkill /f /t /im HotCorners.exe
+	taskkill /f /im HotCorners.exe
 
 See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp and default shortcuts for more information about the possible parameters.
 
