@@ -15,7 +15,7 @@ Touch screens are not yet supported.
 
 You should be able to install [it](https://community.chocolatey.org/packages/hotcorners) from [Chocolatey](https://chocolatey.org/install):
 
-	choco install -y hotcorners --version=0.1.8
+	choco install -y hotcorners
 
 To download and install manually, see https://github.com/lebarsfa/HotCorners/releases.
 Extract and copy the folder to `C:\Program Files\`. Make sure the full path to the executable looks like `C:\Program Files\HotCorners\HotCorners.exe`.
