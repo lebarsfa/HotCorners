@@ -12,8 +12,6 @@ Start-Sleep -Seconds 1
 Stop-Process -Name "HotCorners" -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 2
 
-$url64 = 'https://github.com/lebarsfa/HotCorners/releases/download/v0.1.8/HotCorners.zip'
-
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   ZipFileName = 'HotCorners.zip'
