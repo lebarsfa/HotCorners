@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>hotcorners</id>
-    <version>0.1.8</version>
+    <version>0.1.9</version>
     <packageSourceUrl>https://github.com/lebarsfa/HotCorners/blob/main/packages/choco/HotCorners</packageSourceUrl>
     <owners>lebarsfa</owners>
     <title>Hot Corners</title>
