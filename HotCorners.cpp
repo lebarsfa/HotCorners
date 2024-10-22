@@ -568,7 +568,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							TextOut(hdc, 25, 30, szBatLevel, (int)_tcslen(szBatLevel));
 						}
 						// Covers plug icon
-						TextOut(hdc, 27, 30, _T("  "), (int)_tcslen("  "));
 						TextOut(hdc, 27, 65, _T("  "), (int)_tcslen("  "));
 					}
 					else if (sps.ACLineStatus == 1)
@@ -581,7 +580,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						else
 						{
 							// Covers battery icon
-							TextOut(hdc, 48, 30, _T("  "), (int)_tcslen("  "));
 							TextOut(hdc, 48, 65, _T("  "), (int)_tcslen("  "));
 						}
 					}
@@ -589,7 +587,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						// Unknown power source
 						// Covers plug and battery icons
-						TextOut(hdc, 25, 30, _T("      "), (int)_tcslen("      "));
 						TextOut(hdc, 25, 65, _T("      "), (int)_tcslen("      "));
 					}
 					DeleteObject(hFont);
