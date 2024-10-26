@@ -759,6 +759,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
 				}
 			}
+			else if (IsWindowVisible(hwnd))
+			{
+				RECT rect;
+				if (GetWindowRect(hwnd, &rect))
+				{
+					if (!PtInRect(&rect, pt))
+					{
+						PostMessage(hwnd, WM_MOUSELEAVE, 0, 0);
+					}
+				}
+			}
 			break;
 		case IDT_TIMER_IM:
 			if (IsWindowVisible(hwnd))
