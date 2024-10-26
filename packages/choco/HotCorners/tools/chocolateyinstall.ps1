@@ -9,8 +9,8 @@ Start-Sleep -Seconds 2
 $packageArgs = @{
   packageName = $env:ChocolateyPackageName
   unzipLocation = $env:ProgramFiles
-  url = 'https://github.com/lebarsfa/HotCorners/releases/download/v0.1.9/HotCorners.zip'
-  checksum = '33B950C05A5067CB74F4F08010F948CCB5633D0974142145EEBF7372CD4E0FDF'
+  url = 'https://github.com/lebarsfa/HotCorners/releases/download/v0.1.10/HotCorners.zip'
+  checksum = 'ABF2C04A949B33B9D7826EBFDAF493BA5B4734199CD9090C7853F0F071D4DD0F'
   checksumType = 'sha256'
 }
 
