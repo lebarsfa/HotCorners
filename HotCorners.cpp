@@ -80,6 +80,80 @@ HCURSOR hCursor;
 BOOL bInCharmsBar = FALSE;
 #pragma endregion
 
+void LogErrorToFile(const std::string& message)
+{
+    std::ofstream logFile("error_log.txt", std::ios_base::app); // Open in append mode
+    if (logFile.is_open())
+    {
+        logFile << message << std::endl;
+        logFile.close();
+    }
+    else
+    {
+        // Handle the case where the log file couldn't be opened
+        // You might want to output to a console or take other action
+    }
+}
+
+void SafeKeybdEvent(BYTE bVk, BYTE bScan, DWORD dwFlags, ULONG_PTR dwExtraInfo)
+{
+    INPUT input = {};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = bVk;
+    input.ki.wScan = bScan;
+    input.ki.dwFlags = dwFlags;
+    input.ki.dwExtraInfo = dwExtraInfo;
+
+    const int maxRetries = 4;
+    int attempts = 0;
+    bool success = false;
+
+    while (attempts < maxRetries)
+    {
+        UINT sentInputs = SendInput(1, &input, sizeof(INPUT));
+        if (sentInputs == 1)
+        {
+            // Input was successfully sent
+            success = true;
+            break;
+        }
+        else
+        {
+            // Retrieve error information
+            DWORD error = GetLastError();
+
+            // Get a human-readable error message
+            LPSTR errorMsg = nullptr;
+            FormatMessageA(
+                FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL, error, 0, (LPSTR)&errorMsg, 0, NULL);
+
+            // Construct the log message
+            std::string logMessage = "Attempt " + std::to_string(attempts + 1) +
+                " failed with error " + std::to_string(error) + ": " +
+                (errorMsg ? errorMsg : "Unknown error");
+
+            // Log the error
+            LogErrorToFile(logMessage);
+
+            // Free the buffer allocated by FormatMessage
+            if (errorMsg)
+            {
+                LocalFree(errorMsg);
+            }
+
+            attempts++;
+            Sleep(10); // Brief pause before retrying
+        }
+    }
+
+    if (!success)
+    {
+        // Log a final message after maximum retries
+        LogErrorToFile("SafeKeybdEvent failed after " + std::to_string(maxRetries) + " attempts.");
+    }
+}
+
 bool IsFullScreenAppRunning(HWND myWindow) 
 {
     HWND hWnd = GetForegroundWindow();  // Get the foreground window
@@ -317,18 +391,18 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
 		// Simulate WIN key press		
-		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		SafeKeybdEvent(VK_LWIN, 0, 0, 0); // Press the WIN key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+		SafeKeybdEvent(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
 		// Simulate WIN + D key press to show desktop		
-		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
-		keybd_event('D', 0, 0, 0); // Press the D key
+		SafeKeybdEvent(VK_LWIN, 0, 0, 0); // Press the WIN key
+		SafeKeybdEvent('D', 0, 0, 0); // Press the D key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
-		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+		SafeKeybdEvent('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
+		SafeKeybdEvent(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '2' && cmd[3] == '\0')
 	{
@@ -353,9 +427,9 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		key[2] = cmd[2];
 		key[3] = cmd[3];
 		int vk_code = std::stoi(key, nullptr, 16);
-		keybd_event((BYTE)vk_code, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == '\0')
 	{
@@ -367,11 +441,11 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		key2[3] = cmd[6];
 		int vk_code1 = std::stoi(key1, nullptr, 16);
 		int vk_code2 = std::stoi(key2, nullptr, 16);
-		keybd_event((BYTE)vk_code1, 0, 0, 0);
-		keybd_event((BYTE)vk_code2, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == '\0')
 	{
@@ -387,13 +461,13 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		int vk_code1 = std::stoi(key1, nullptr, 16);
 		int vk_code2 = std::stoi(key2, nullptr, 16);
 		int vk_code3 = std::stoi(key3, nullptr, 16);
-		keybd_event((BYTE)vk_code1, 0, 0, 0);
-		keybd_event((BYTE)vk_code2, 0, 0, 0);
-		keybd_event((BYTE)vk_code3, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == '\0')
 	{
@@ -413,15 +487,15 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		int vk_code2 = std::stoi(key2, nullptr, 16);
 		int vk_code3 = std::stoi(key3, nullptr, 16);
 		int vk_code4 = std::stoi(key4, nullptr, 16);
-		keybd_event((BYTE)vk_code1, 0, 0, 0);
-		keybd_event((BYTE)vk_code2, 0, 0, 0);
-		keybd_event((BYTE)vk_code3, 0, 0, 0);
-		keybd_event((BYTE)vk_code4, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == ':' && cmd[16] == '\0')
 	{
@@ -445,17 +519,17 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		int vk_code3 = std::stoi(key3, nullptr, 16);
 		int vk_code4 = std::stoi(key4, nullptr, 16);
 		int vk_code5 = std::stoi(key5, nullptr, 16);
-		keybd_event((BYTE)vk_code1, 0, 0, 0);
-		keybd_event((BYTE)vk_code2, 0, 0, 0);
-		keybd_event((BYTE)vk_code3, 0, 0, 0);
-		keybd_event((BYTE)vk_code4, 0, 0, 0);
-		keybd_event((BYTE)vk_code5, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code5, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[4] == ':' && cmd[7] == ':' && cmd[10] == ':' && cmd[13] == ':' && cmd[16] == ':' && cmd[19] == '\0')
 	{
@@ -483,19 +557,19 @@ void ClickAction(char* cmd, int bCmdOrSE)
 		int vk_code4 = std::stoi(key4, nullptr, 16);
 		int vk_code5 = std::stoi(key5, nullptr, 16);
 		int vk_code6 = std::stoi(key6, nullptr, 16);
-		keybd_event((BYTE)vk_code1, 0, 0, 0);
-		keybd_event((BYTE)vk_code2, 0, 0, 0);
-		keybd_event((BYTE)vk_code3, 0, 0, 0);
-		keybd_event((BYTE)vk_code4, 0, 0, 0);
-		keybd_event((BYTE)vk_code5, 0, 0, 0);
-		keybd_event((BYTE)vk_code6, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code5, 0, 0, 0);
+		SafeKeybdEvent((BYTE)vk_code6, 0, 0, 0);
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event((BYTE)vk_code6, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
-		keybd_event((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code6, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code5, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code4, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code3, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code2, 0, KEYEVENTF_KEYUP, 0);
+		SafeKeybdEvent((BYTE)vk_code1, 0, KEYEVENTF_KEYUP, 0);
 	}
 	else if (cmd != NULL && cmd[0] != '\0')
 	{
