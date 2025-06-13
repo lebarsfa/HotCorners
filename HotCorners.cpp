@@ -56,7 +56,7 @@ int FSize = 30; // Font size
 char FType[MAX_BUF_LEN] = "Segoe UI Semilight";
 int textx = 5; // Text position
 int texty = 5; // Text position
-char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", otherwise command to output if not empty
+char dispcmd[MAX_BUF_LEN] = "";//"::0";// "powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt";// Hardcoded disposition for date and time if "::0", "::1" or "::2" (different display of seconds), otherwise command to output if not empty
 int pwsdelay = 0; // Delay in seconds for shutdown action "::3"
 int pwrdelay = 0; // Delay in seconds for restart action "::4"
 int bForcePw = 0; // Force shutdown/restart actions "::3" and "::4"
@@ -535,13 +535,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Draw the bitmap at the top-left corner
 			BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hMemDC, 0, 0, SRCCOPY);
 #pragma region Text			
-			if (dispcmd != NULL && dispcmd[0] == ':' && dispcmd[1] == ':' && dispcmd[2] == '0' && dispcmd[3] == '\0')
+			if (dispcmd != NULL && dispcmd[0] == ':' && dispcmd[1] == ':' && ((dispcmd[2] == '0') || (dispcmd[2] == '1') || (dispcmd[2] == '2')) && dispcmd[3] == '\0')
 			{
 				SYSTEM_POWER_STATUS sps;
 				int batlevel = 0;
 				TCHAR szBatLevel[9];
 				SYSTEMTIME st;
-				WCHAR szTime[9];
+				WCHAR szTime[9];// = L"11:11";// = L"11:11:11";// = L"22:29";// = L"22:29:29";
+				WCHAR szTimeSecs[9];// = L":11";// = L":29";
 				WCHAR szDayOfWeek[80];
 				WCHAR szDate[9];
 
@@ -549,7 +550,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				sprintf_s(szBatLevel, 9, "%d%%", batlevel);
 
 				GetLocalTime(&st);
-				GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm", szTime, 9);
+				if (dispcmd[2] == '0')
+				{
+					GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm", szTime, 9);
+					GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"':'ss", szTimeSecs, 9);
+				}
+				else if (dispcmd[2] == '1')
+				{
+					GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm':'ss", szTime, 9);
+				}
+				else
+				{
+					GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"HH':'mm", szTime, 9);
+				}
 				GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"ddd", szDayOfWeek, 80);
 				GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"dd MMM", szDate, 9);
 
@@ -604,8 +617,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if (hFont)
 				{
 					SelectObject(hdc, hFont);
-					TextOutW(hdc, 310, 20, szDayOfWeek, (int)wcslen(szDayOfWeek));
-					TextOutW(hdc, 310, 65, szDate, (int)wcslen(szDate));
+					if (dispcmd[2] == '0')
+					{
+						TextOutW(hdc, 100+2*105-15, 25, szTimeSecs, (int)wcslen(szTimeSecs));
+						TextOutW(hdc, 100+2*105+60, 20, szDayOfWeek, (int)wcslen(szDayOfWeek));
+						TextOutW(hdc, 100+2*105+60, 65, szDate, (int)wcslen(szDate));
+					}
+					else if (dispcmd[2] == '1')
+					{
+						TextOutW(hdc, 100+3*105, 20, szDayOfWeek, (int)wcslen(szDayOfWeek));
+						TextOutW(hdc, 100+3*105, 65, szDate, (int)wcslen(szDate));
+					}
+					else
+					{
+						TextOutW(hdc, 100+2*105, 20, szDayOfWeek, (int)wcslen(szDayOfWeek));
+						TextOutW(hdc, 100+2*105, 65, szDate, (int)wcslen(szDate));
+					}
 					DeleteObject(hFont);
 				}
 			}

@@ -34,17 +34,17 @@ would create a `Charms bar` background.
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::0" --rclick= --help= --image=Start.bmp --immulhy=-0.25
 
-would create a `Charms button` on the `Charms bar` to generate WIN key press ("::0" is a hardcoded predefined action).
+would create a `Charms button` on the `Charms bar` to generate WIN key press (`"::0"` is a hardcoded predefined action for `lclick` parameter).
 
 	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick="::1" --rclick= --help= --image=Show_desktop.bmp --imofsy=-100 --immulhy=-0.25
 
-would create a `Charms button` on the `Charms bar` to generate WIN+D key press ("::1" is a hardcoded predefined action).
+would create a `Charms button` on the `Charms bar` to generate WIN+D key press (`"::1"` is a hardcoded predefined action for `lclick` parameter).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=581 --immulwx=-1 --imofsy=-48 --BGRed=22 --BGGreen=26 --BGBlue=29 --dispcmd="::0"
 
-would create a `Charms button` associated to the `Charms bar` to show the date like Windows 8 ("::0" is a hardcoded value, otherwise command to output if not empty).
+would create a `Charms button` associated to the `Charms bar` to show the date like Windows 8 (`"::0"`, `"::1"` or `"::2"` are hardcoded values for `dispcmd` parameter (different display of seconds, to associate respectively with `--image=Date.bmp --imofsx=581`, `--image=Date1.bmp --imofsx=646` or `--image=Date2.bmp --imofsx=541`), otherwise command to output if not empty).
 
-	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=541 --immulwx=-1 --imofsy=-236 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt" --imPeriod=0
+	"C:\Program Files\HotCorners\HotCorners.exe" --HCWType=2 --HCType=3 --lclick= --rclick= --help= --image=Date.bmp --imofsx=581 --immulwx=-1 --imofsy=-236 --BGRed=22 --BGGreen=26 --BGBlue=29 --FSize=30 --textx=5 --texty=5 --dispcmd="powershell -Command \"[System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US' ; Get-Date -Format 'HH:mm ddd dd MMM'\" > temp.txt" --imPeriod=0
 
 would create a `Charms button` associated to the `Charms bar` to show the date using the output of a PowerShell command and without refreshing it periodically.
 
@@ -54,7 +54,7 @@ would create a `Charms button` on the `Charms bar` with some custom actions.
 
 Shortcut `Target` property might not directly allow very long commands, so a workaround can be to create an environment variable (e.g. `HCNOTEPADBUTTON` with `--HCWType=2...`) which contains the parameters and then use it in the shortcut `Target` property (e.g. `"C:\Program Files\HotCorners\HotCorners.exe" %HCNOTEPADBUTTON%`). Ensure also that the `Start in` property of the shortcut is set to the necessary folder if relative paths are used for some parameters.
 
-For `lclick` and `rclick` parameters, it is also possible to specify "::FF", "::FF:FE", "::FF:FE:FD", "::FF:FE:FD:FC", "::FF:FE:FD:FC:FB", "::FF:FE:FD:FC:FB:FA" where FF, FE, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
+For `lclick` and `rclick` parameters, it is also possible to specify `"::FF"`, `"::FF:FE"`, `"::FF:FE:FD"`, `"::FF:FE:FD:FC"`, `"::FF:FE:FD:FC:FB"`, `"::FF:FE:FD:FC:FB:FA"` where `FF`, `FE`, etc. are the hexadecimal values of keys to press (see https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes).
 
 Note also that the `image` parameter is reloaded regularly (depends on `imPeriod` parameter), so you can change the image file while the program is running (therefore, it could act somehow like a live tile...).
 
@@ -66,7 +66,9 @@ See the top of https://github.com/lebarsfa/HotCorners/blob/main/HotCorners.cpp a
 
 ## Rationale
 
-The idea is that the default location of the `Show desktop` button on Windows 10-11 `Taskbar` is small and can be easily missed. Additionally, we may want to limit the number of fixed elements on the `Taskbar` and the `Start menu` button might be used to open a different menu than the default one (e.g. Open-Shell `Start menu`), or possibly we may want to fully hide the `Start menu` button while we still want to access the default `Start menu` and `Show desktop` functionalities.
+ - The default locations of the `Show desktop` button on Windows 10-11 `Taskbar` was small and could be easily missed. 
+ - We may want to limit the number of fixed elements on the `Taskbar` and the `Start menu` button might be used to open a different menu than the default one (e.g. Open-Shell `Start menu`), or possibly we may want to fully hide the `Start menu` button while we still want to access the default `Start menu` and `Show desktop` functionalities.
+ - The date with seconds was not easy to display on Windows 11.
 
 [//]: # (
 This is a multi-line comment.
