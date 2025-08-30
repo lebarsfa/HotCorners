@@ -12,6 +12,7 @@
 
 #define IDT_TIMER_HC 1
 #define IDT_TIMER_IM 2
+#define IDT_TIMER_CA 3
 #pragma endregion 
 
 //
@@ -78,6 +79,12 @@ char HOT_CORNERS_CHARMS_BUTTON_CLASS_NAME[] = "Hot Corners Charms Button Class";
 WCHAR szwFType[MAX_BUF_LEN];
 HCURSOR hCursor;
 BOOL bInCharmsBar = FALSE;
+HWND hcawnd = NULL;
+int caDelay = 50; // In milliseconds
+char caCmd[MAX_BUF_LEN] = "";
+int bcaCmdOrSE = 0;
+int bWork = 0;
+int bExit = 0;
 #pragma endregion
 
 bool IsFullScreenAppRunning(HWND myWindow) 
@@ -312,23 +319,133 @@ BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
     return TRUE; // Continue enumeration
 }
 
+void InitClickAction(HWND hwnd)
+{
+	KillTimer(hwnd, IDT_TIMER_HC);
+	if (HCWType == 0)
+	{
+		ShowWindow(hwnd, SW_SHOW);
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	}
+	if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
+}
+
+void UnInitClickAction(HWND hwnd)
+{
+	SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+}
+
 void ClickAction(char* cmd, int bCmdOrSE)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
 		// Simulate WIN key press		
-		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
-		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+		//keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+
+
+		// Unsure it is better but it does not seem worse either...
+
+		//INPUT down = { INPUT_KEYBOARD };
+		//down.ki.wVk = VK_LWIN;
+		//SendInput(1, &down, sizeof(INPUT));
+
+		//Sleep(50);
+
+		//INPUT up = { INPUT_KEYBOARD };
+		//up.ki.wVk = VK_LWIN;
+		//up.ki.dwFlags = KEYEVENTF_KEYUP;
+		//SendInput(1, &up, sizeof(INPUT));
+
+		INPUT inputs[2] = {};
+		int i = 0;
+
+		// Press Win
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = VK_LWIN;
+		i++;
+		// Release Win
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = VK_LWIN;
+		inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		i++;
+		//// Release Win Right just in case...
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_RWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+		//// Release Win
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_LWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+		//// Release Win Right just in case...
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_RWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+
+		SendInput(i, inputs, sizeof(INPUT));
+
+		//Sleep(50);
+
+
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
 		// Simulate WIN + D key press to show desktop		
-		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
-		keybd_event('D', 0, 0, 0); // Press the D key
-		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
-		keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
-		keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+		//keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
+		//keybd_event('D', 0, 0, 0); // Press the D key
+		//if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//keybd_event('D', 0, KEYEVENTF_KEYUP, 0); // Release the D key
+		//keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0); // Release the WIN key
+
+
+		// Unsure it is better but it does not seem worse either...
+
+		INPUT inputs[4] = {};
+		int i = 0;
+
+		// Press Win
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = VK_LWIN;
+		i++;
+		// Press 'D'
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = 'D';
+		i++;
+		// Release 'D'
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = 'D';
+		inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		i++;
+		// Release Win
+		inputs[i].type = INPUT_KEYBOARD;
+		inputs[i].ki.wVk = VK_LWIN;
+		inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		i++;
+		//// Release Win Right just in case...
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_RWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+		//// Release Win
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_LWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+		//// Release Win Right just in case...
+		//inputs[i].type = INPUT_KEYBOARD;
+		//inputs[i].ki.wVk = VK_RWIN;
+		//inputs[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		//i++;
+
+		SendInput(i, inputs, sizeof(INPUT));
+
+		//Sleep(50);
+
+
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '2' && cmd[3] == '\0')
 	{
@@ -515,6 +632,21 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	}
 }
 
+DWORD WINAPI WorkerThreadProc(LPVOID lpParam)
+{
+	UNREFERENCED_PARAMETER(lpParam);
+	// This runs in parallel to the message loop
+	while (!bExit) {
+		if (bWork) {
+			//ClickAction(caCmd, bcaCmdOrSE);
+			//UnInitClickAction(hcawnd);
+			bWork = 0;
+		}
+		Sleep(tmPeriod);
+	}
+	return 0;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
@@ -672,49 +804,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		EndPaint(hwnd, &ps);
 		break;
 	}
+	//case WM_USER + 1:
+	//	break;
 	case WM_LBUTTONDOWN:
-		if (HCWType == 0)
-		{
-			ShowWindow(hwnd, SW_SHOW);
-			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		}
-		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER_HC);
+		//ClickAction(lclick, blCmdOrSE);
+		InitClickAction(hwnd);
 		ClickAction(lclick, blCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+		//strcpy_s(caCmd, lclick); bcaCmdOrSE = blCmdOrSE; hcawnd = hwnd; bWork = 1;		
+		//PostMessage(hwnd, WM_USER + 1, 0, 0); // Instead of timer, but would not have directly a delay...
+		//SetTimer(hwnd, IDT_TIMER_CA, (UINT)caDelay, (TIMERPROC)NULL);
+		UnInitClickAction(hwnd);
 		break;
 	case WM_RBUTTONDOWN:
-		if (HCWType == 0)
-		{
-			ShowWindow(hwnd, SW_SHOW);
-			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		}
-		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER_HC);
+		//ClickAction(rclick, brCmdOrSE);
+		InitClickAction(hwnd);
 		ClickAction(rclick, brCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+		//strcpy_s(caCmd, rclick); bcaCmdOrSE = brCmdOrSE; hcawnd = hwnd; bWork = 1;
+		//PostMessage(hwnd, WM_USER + 1, 0, 0); // Instead of timer, but would not have directly a delay...
+		//SetTimer(hwnd, IDT_TIMER_CA, (UINT)caDelay, (TIMERPROC)NULL);
+		UnInitClickAction(hwnd);
 		break;
 	case WM_LBUTTONDBLCLK:
-		if (HCWType == 0)
-		{
-			ShowWindow(hwnd, SW_SHOW);
-			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		}
-		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER_HC);
+		//ClickAction(ldclick, bldCmdOrSE);
+		InitClickAction(hwnd);
 		ClickAction(ldclick, bldCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+		//strcpy_s(caCmd, ldclick); bcaCmdOrSE = bldCmdOrSE; hcawnd = hwnd; bWork = 1;
+		//PostMessage(hwnd, WM_USER + 1, 0, 0); // Instead of timer, but would not have directly a delay...
+		//SetTimer(hwnd, IDT_TIMER_CA, (UINT)caDelay, (TIMERPROC)NULL);
+		UnInitClickAction(hwnd);
 		break;
 	case WM_RBUTTONDBLCLK:
-		if (HCWType == 0)
-		{
-			ShowWindow(hwnd, SW_SHOW);
-			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		}
-		if (HCWType == 1) EnumWindows(EnumWindowsSetTopProc, 0);
-		KillTimer(hwnd, IDT_TIMER_HC);
+		//ClickAction(rdclick, brdCmdOrSE);
+		InitClickAction(hwnd);
 		ClickAction(rdclick, brdCmdOrSE);
-		SetTimer(hwnd, IDT_TIMER_HC, (UINT)tmPeriod, (TIMERPROC)NULL);
+		//strcpy_s(caCmd, rdclick); bcaCmdOrSE = brdCmdOrSE; hcawnd = hwnd; bWork = 1;
+		//PostMessage(hwnd, WM_USER + 1, 0, 0); // Instead of timer, but would not have directly a delay...
+		//SetTimer(hwnd, IDT_TIMER_CA, (UINT)caDelay, (TIMERPROC)NULL);
+		UnInitClickAction(hwnd);
 		break;
 	case WM_MOUSEMOVE:
 	{
@@ -805,12 +931,53 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				InvalidateRect(hwnd, NULL, TRUE);
 			}
 			break;
+		case IDT_TIMER_CA:
+
+			InitClickAction(hwnd);
+			UnInitClickAction(hwnd);
+
+			// Does not work well here...
+			//{
+			//	//INPUT down = { INPUT_KEYBOARD };
+			//	//down.ki.wVk = VK_LWIN;
+			//	//SendInput(1, &down, sizeof(INPUT));
+
+			//	//Sleep(50);
+
+			//	//INPUT up = { INPUT_KEYBOARD };
+			//	//up.ki.wVk = VK_LWIN;
+			//	//up.ki.dwFlags = KEYEVENTF_KEYUP;
+			//	//SendInput(1, &up, sizeof(INPUT));
+
+			//	INPUT inputs[2] = {};
+			//	// Press Win
+			//	inputs[0].type = INPUT_KEYBOARD;
+			//	inputs[0].ki.wVk = VK_LWIN;
+			//	// Release Win
+			//	inputs[1].type = INPUT_KEYBOARD;
+			//	inputs[1].ki.wVk = VK_LWIN;
+			//	inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+			//	SendInput(2, inputs, sizeof(INPUT));
+
+			//	//Sleep(50);
+			//}
+
+			//ClickAction(caCmd, bcaCmdOrSE);
+
+			// Seems to cause issues here for the button of the Charms bar...
+			//UnInitClickAction(hwnd);
+
+			KillTimer(hwnd, IDT_TIMER_CA);
+			break;
 		}
 		break;
 	}
 	case WM_DESTROY:
+		bExit = 1;
 		KillTimer(hwnd, IDT_TIMER_HC);
 		if (imPeriod > 0) KillTimer(hwnd, IDT_TIMER_IM);
+		KillTimer(hwnd, IDT_TIMER_CA);
 		PostQuitMessage(0);
 		break;
 	default:
@@ -943,6 +1110,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	szwFType[szwFTypeLen] = L'\0';
 #pragma endregion
 
+	//HANDLE hThread = CreateThread(
+	//	nullptr,                // default security
+	//	0,                      // default stack size
+	//	WorkerThreadProc,       // thread function
+	//	nullptr,                // parameter to thread function
+	//	0,                      // creation flags
+	//	nullptr                 // thread ID
+	//);
+
 	if (ReloadImage() != EXIT_SUCCESS)
 	{
 		return EXIT_INVALID_PARAMETER;
@@ -1023,6 +1199,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	    DeleteObject(hBitmap);
 	    hBitmap = NULL;
 	}
+
+	//CloseHandle(hThread);
 
 	//DestroyWindow(hwnd);
 
