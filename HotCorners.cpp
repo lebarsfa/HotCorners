@@ -316,6 +316,7 @@ void ClickAction(char* cmd, int bCmdOrSE)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		// Simulate WIN key press		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
@@ -323,6 +324,7 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	}
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
+		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
 		// Simulate WIN + D key press to show desktop		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		keybd_event('D', 0, 0, 0); // Press the D key
