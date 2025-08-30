@@ -311,12 +311,67 @@ BOOL CALLBACK EnumWindowsSetTopProc(HWND hwnd, LPARAM lParam)
 
     return TRUE; // Continue enumeration
 }
+#pragma region Dummy input events
+void SendDummyKeyUp()
+{
+	// Use the Shift key; pick either left or right.
+	const BYTE VK_DUMMY = VK_SHIFT;                       // 0x10
+	const BYTE SC_DUMMY = (BYTE)MapVirtualKey(VK_DUMMY, 0);     // hardware scancode
 
+	// Release a key that very likely isn’t down right now.
+	keybd_event(VK_DUMMY, SC_DUMMY,
+		KEYEVENTF_KEYUP,           // release only
+		0xFEEDFACE);               // recognisable tag
+}
+
+void SendDummyXButtonClick()
+{
+	INPUT seq[2]{};
+
+	seq[0].type = INPUT_MOUSE;  // button down
+	seq[0].mi.dwFlags = MOUSEEVENTF_XDOWN;
+	seq[0].mi.mouseData = XBUTTON2;       // seldom mapped
+	seq[0].mi.dwExtraInfo = 0xFEEDFACE;
+
+	seq[1] = seq[0];       // button up
+	seq[1].mi.dwFlags = MOUSEEVENTF_XUP;
+
+	SendInput(2, seq, sizeof(INPUT));
+}
+
+void SendOffscreenDummyXButtonClick()
+{
+	// Screen->[0, 65535] absolute space
+	POINT pt;
+	GetCursorPos(&pt);
+
+	LONG absX = LONG(double(pt.x) / GetSystemMetrics(SM_CXSCREEN) * 65535.0);
+	LONG absY = LONG(double(pt.y) / GetSystemMetrics(SM_CYSCREEN) * 65535.0);
+
+	INPUT seq[2]{};
+
+	seq[0].type = INPUT_MOUSE;         // button down
+	seq[0].mi.dwFlags = MOUSEEVENTF_ABSOLUTE |
+		MOUSEEVENTF_MOVE     | // position stays the same
+		MOUSEEVENTF_XDOWN;
+	seq[0].mi.dx = absX;
+	seq[0].mi.dy = absY;
+	seq[0].mi.mouseData = XBUTTON2;       // seldom mapped
+	seq[0].mi.dwExtraInfo = 0xFEEDFACE;
+
+	seq[1] = seq[0];             // button up
+	seq[1].mi.dwFlags = (seq[0].mi.dwFlags & ~MOUSEEVENTF_XDOWN) |
+		MOUSEEVENTF_XUP;
+
+	SendInput(2, seq, sizeof(INPUT));
+}
+#pragma endregion 
 void ClickAction(char* cmd, int bCmdOrSE)
 {
 	if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '0' && cmd[3] == '\0')
 	{
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//SendDummyXButtonClick();
 		// Simulate WIN key press		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
@@ -325,6 +380,7 @@ void ClickAction(char* cmd, int bCmdOrSE)
 	else if (cmd != NULL && cmd[0] == ':' && cmd[1] == ':' && cmd[2] == '1' && cmd[3] == '\0')
 	{
 		if (keyReleaseDelay > 0) Sleep(keyReleaseDelay);
+		//SendDummyXButtonClick();
 		// Simulate WIN + D key press to show desktop		
 		keybd_event(VK_LWIN, 0, 0, 0); // Press the WIN key
 		keybd_event('D', 0, 0, 0); // Press the D key
